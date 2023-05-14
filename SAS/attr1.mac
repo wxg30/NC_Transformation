@@ -1,0 +1,2355 @@
+ 
+ data all_temp;
+ set all_temp; 
+ 
+ if (.< Connect_dt <= '01jan1930'd) then delete;
+ if (.< Disconnect_dt <= '01jan1930'd) then Disconnect_dt=.;
+
+  *** run_dt -  Run Date (sas date) ***;
+  run_dt=input(&run_date,mmddyy8.);
+
+ ********************************************************************************;
+ ********************************************************************************;
+ ***                                GLOBALS                                   ***;
+ ********************************************************************************;
+ ********************************************************************************;
+
+  *** mos_since_connected -     Number of Months Since Connected ***;
+  mos_since_connected=intck('MONTH',Connect_dt,run_dt);
+
+  *** mos_since_disconnected -  Number of Months Since Disconnected ***;
+  mos_since_disconnected=intck('MONTH',Disconnect_dt,run_dt);
+
+ *** mos_since_reported - Number of Months since Last Reported ***;
+  if Reportg_dt ne . then mos_since_reported=intck('MONTH',Reportg_dt,run_dt);
+  else if Reportg_dt=. then do;
+  if Curr_Bal_dt ne . then mos_since_reported=intck('MONTH',Curr_Bal_dt,run_dt);
+  else if dt01 ne . then mos_since_reported=intck('MONTH',dt01,run_dt);
+  else if dt02 ne . then mos_since_reported=intck('MONTH',dt02,run_dt);
+  else if dt03 ne . then mos_since_reported=intck('MONTH',dt03,run_dt);
+  else if dt04 ne . then mos_since_reported=intck('MONTH',dt04,run_dt);
+  else if dt05 ne . then mos_since_reported=intck('MONTH',dt05,run_dt);
+  else if dt06 ne . then mos_since_reported=intck('MONTH',dt06,run_dt);
+  else if dt07 ne . then mos_since_reported=intck('MONTH',dt07,run_dt);
+  else if dt08 ne . then mos_since_reported=intck('MONTH',dt08,run_dt);
+  else if dt09 ne . then mos_since_reported=intck('MONTH',dt09,run_dt);
+  else if dt10 ne . then mos_since_reported=intck('MONTH',dt10,run_dt);
+  else if dt11 ne . then mos_since_reported=intck('MONTH',dt11,run_dt);
+  else if dt12 ne . then mos_since_reported=intck('MONTH',dt12,run_dt);
+  else if dt13 ne . then mos_since_reported=intck('MONTH',dt13,run_dt);
+  else if dt14 ne . then mos_since_reported=intck('MONTH',dt14,run_dt);
+  else if dt15 ne . then mos_since_reported=intck('MONTH',dt15,run_dt);
+  else if dt16 ne . then mos_since_reported=intck('MONTH',dt16,run_dt);
+  else if dt17 ne . then mos_since_reported=intck('MONTH',dt17,run_dt);
+  else if dt18 ne . then mos_since_reported=intck('MONTH',dt18,run_dt);
+  else if dt19 ne . then mos_since_reported=intck('MONTH',dt19,run_dt);
+  else if dt20 ne . then mos_since_reported=intck('MONTH',dt20,run_dt);
+  else if dt21 ne . then mos_since_reported=intck('MONTH',dt21,run_dt);
+  else if dt22 ne . then mos_since_reported=intck('MONTH',dt22,run_dt);
+  else if dt23 ne . then mos_since_reported=intck('MONTH',dt23,run_dt);
+  else if dt24 ne . then mos_since_reported=intck('MONTH',dt24,run_dt);
+  else if last_reported_date ne . then mos_since_reported=intck('MONTH',last_reported_date,run_dt); 
+  end;
+  label mos_since_reported='run date to report date else run date to most recent balance date'; 
+
+ *** LAST_STATUS - Last Reported Status ***;
+ length LAST_STATUS $1.;
+
+ if acct_status not in ('X','D',' ') then LAST_STATUS = acct_status;
+ else if S01 not in ('X','D',' ') then LAST_STATUS = S01;
+ else if S02 not in ('X','D',' ') then LAST_STATUS = S02;
+ else if S03 not in ('X','D',' ') then LAST_STATUS = S03;
+ else if S04 not in ('X','D',' ') then LAST_STATUS = S04;
+ else if S05 not in ('X','D',' ') then LAST_STATUS = S05;
+ else if S06 not in ('X','D',' ') then LAST_STATUS = S06;
+ else if S07 not in ('X','D',' ') then LAST_STATUS = S07;
+ else if S08 not in ('X','D',' ') then LAST_STATUS = S08;
+ else if S09 not in ('X','D',' ') then LAST_STATUS = S09;
+ else if S10 not in ('X','D',' ') then LAST_STATUS = S10;
+ else if S11 not in ('X','D',' ') then LAST_STATUS = S11;
+ else if S12 not in ('X','D',' ') then LAST_STATUS = S12;
+ else if S13 not in ('X','D',' ') then LAST_STATUS = S13;
+ else if S14 not in ('X','D',' ') then LAST_STATUS = S14;
+ else if S15 not in ('X','D',' ') then LAST_STATUS = S15;
+ else if S16 not in ('X','D',' ') then LAST_STATUS = S16;
+ else if S17 not in ('X','D',' ') then LAST_STATUS = S17;
+ else if S18 not in ('X','D',' ') then LAST_STATUS = S18;
+ else if S19 not in ('X','D',' ') then LAST_STATUS = S19;
+ else if S20 not in ('X','D',' ') then LAST_STATUS = S20;
+ else if S21 not in ('X','D',' ') then LAST_STATUS = S21;
+ else if S22 not in ('X','D',' ') then LAST_STATUS = S22;
+ else if S23 not in ('X','D',' ') then LAST_STATUS = S23;
+ else if S24 not in ('X','D',' ') then LAST_STATUS = S24;
+ else if last_reported_status not in ('X','D',' ') then LAST_STATUS = last_reported_status;
+ else LAST_STATUS = ' ';
+
+ *** LAST_STATUS - Last Reported Status 6 months ***;
+ length LAST_STATUS_6 $1.;
+
+ if acct_status not in ('X','D',' ') then LAST_STATUS_6 = acct_status;
+ else if S01 not in ('X','D',' ') then LAST_STATUS_6 = S01;
+ else if S02 not in ('X','D',' ') then LAST_STATUS_6 = S02;
+ else if S03 not in ('X','D',' ') then LAST_STATUS_6 = S03;
+ else if S04 not in ('X','D',' ') then LAST_STATUS_6 = S04;
+ else if S05 not in ('X','D',' ') then LAST_STATUS_6 = S05;
+
+ *** FRAUD ***;
+ if LAST_STATUS = 'F' then FRAUD=1; else FRAUD=0;
+
+ *** Creates grid of current status + all 24 months of previous historical statuses ***;
+ length hist_25 $25.;
+ hist_25=Acct_status||S01||S02||S03||S04||S05||S06||S07||S08||S09||S10||S11||S12||S13||S14||S15||S16||S17||S18||S19||S20||S21||S22||S23||S24;
+
+ *** BANKRUPTCY ***;
+ if index(hist_25,'B') > 0 then BKP=1; else BKP=0;
+
+ ********** Industry Definitions **********;
+ *** WRL - Wireless ***;
+ if indexc(Srv_Typ,"I") ne 0 then WRL=1; else WRL=0;
+
+ *** LND - Landline / Local Phone ***;
+ if indexc(Srv_Typ,"F") ne 0 then LND=1; else LND=0;
+
+ *** PTV - Paid TV (Satellite or Cable) ***;
+ if indexc(Srv_Typ,"US") ne 0 then PTV=1; else PTV=0;
+
+ *** UTL - Utilities (Electricity, Gas or Water) ***;
+ if indexc(Srv_Typ,"EGW") ne 0 then UTL=1; else UTL=0;
+
+ run;
+
+ data all_temp;
+ set all_temp;
+
+ ****** Drop the Fraud Accounts - account level exclusion ******;
+ if fraud=1 then delete;
+
+ if mos_since_reported=. then mos_since_reported=999;
+ if mos_since_connected=. then mos_since_connected=999;
+ if mos_since_disconnected=. then mos_since_disconnected=999;
+
+ run;
+
+ *** sort and check for duplicates ***;
+ proc sort data= all_temp nodupkey;
+ by cnxid company_cd Account_Number Srv_Typ ;
+ run;
+
+ ***** Create Permanent dataset - this dataset will also be used in the second variable aggregation programs *****;
+ data all;
+ set all_temp;
+ run;
+
+ ********************************************************************************;
+ ********************************************************************************;
+ ***                          ATTRIBUTE AGGREGATION                           ***;
+ ********************************************************************************;
+ ********************************************************************************;
+
+ proc sort data= all_temp out=all_var0a;
+ by cnxid descending last_status;
+ run;
+
+ Data all_var0a;
+ set all_var0a;
+ by cnxid;
+
+if (first.cnxid) then do;
+   num_accounts=0;
+   num_accounts_open2=0;
+   num_bkp=0;
+   num_fraud=0;
+end;
+
+ ************ Number of Bankrupt Accounts ************;
+  if bkp=1 then do;
+  num_bkp+1;
+  end;
+
+  ************ Number of Fraud Accounts ************;
+  if fraud=1 then do;
+  num_fraud+1;
+  end;
+
+  *** TOT0101 - Number of Accounts ***;
+  if cnxid=' ' then num_accounts=99;
+  else if cnxid ne ' ' then do;
+     if num_accounts <= 92 then num_accounts+1;
+  end;
+
+   *** TOT0102 - Number of Open Accounts ***;
+  if cnxid=' ' then num_accounts_open2=99;
+  else if cnxid ne ' ' and (last_status in ('9','B','F','N','P','U',' ') ) then num_accounts_open2=96;
+  if cnxid ne ' ' and (last_status not in ('9','B','F','N','P','U',' ') ) then do;
+     if num_accounts_open2=96 then num_accounts_open2=0;
+     if num_accounts_open2 <= 92 then num_accounts_open2+1;
+  end;
+
+ keep cnxid 
+ account_number Srv_Typ mos_since_reported last_status
+ num_accounts
+ num_bkp
+ num_fraud
+ num_accounts_open2
+;
+
+run;
+
+ proc sort data= all_temp out=all_var0;
+ by cnxid descending Srv_Typ descending last_status;
+ run;
+
+ Data all_var0;
+ set all_var0;
+ by cnxid;
+
+if (first.cnxid) then do;
+ num_I_open2=0;
+ num_F_open2=0;
+ num_US_open2=0;
+ num_EGW_open2=0;
+ num_N_open2=0;
+ num_DF_open2=0;
+ num_FN_open2=0;
+end;
+
+ *** WRL0102 - Number of Open Wireless Accounts ***;
+ *** LND0102 - Number of Open Landline Accounts ***;
+ *** PTV0102 - Number of Open Paid TV Accounts ***;
+ *** UTL0102 - Number of Open Utility Accounts ***;
+ *** INT0102 - Number of Open Internet Accounts ***;
+ %macro numoaccts(servicetype);
+
+ if cnxid=' ' then num_&servicetype._open2=99;
+ else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype._open2=98;
+ else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then do;
+    if (last_status in ('9','B','F','N','P','U',' ') ) then do;
+      if num_&servicetype._open2=98 then num_&servicetype._open2=96;
+      else num_&servicetype._open2=96;
+    end;
+ end;
+ else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")>0) then do;
+    if (last_status in ('9','B','F','N','P','U',' ') ) then do;
+      if num_&servicetype._open2=98 then num_&servicetype._open2=96;
+      else num_&servicetype._open2=96;
+    end;
+    else if (last_status not in ('9','B','F','N','P','U',' ')) then do;
+       if num_&servicetype._open2=98 then num_&servicetype._open2=0;
+       if num_&servicetype._open2=96 then num_&servicetype._open2=0;
+       if num_&servicetype._open2 <= 92 then num_&servicetype._open2+1;
+    end;
+ end;
+
+ *** BUA0102 - Number of Open Local AND Long Distance Accounts ***;
+  if cnxid=' ' then num_DF_open2=99;
+  else if cnxid ne ' ' and (Srv_Typ not in ('D','F')) then num_DF_open2=98;
+  else if cnxid ne ' ' and (Srv_Typ not in ('D','F')) and (last_status in ('9','B','F','N','P','U',' ') ) then do;
+     if num_DF_open2=98 then num_DF_open2=96;
+  end;
+  else if cnxid ne ' '
+       AND (indexc(Srv_Typ,'D') ne 0 AND indexc(Srv_Typ,'F') ne 0) then do;
+     if (last_status in ('9','B','F','N','P','U',' ') ) then do;
+        if num_DF_open2=98 then num_DF_open2=96;
+        else num_DF_open2=96;
+     end;
+     else if (last_status not in ('9','B','F','N','P','U',' ') ) then do;
+        if num_DF_open2=98 then num_DF_open2=0;
+        if num_DF_open2=96 then num_DF_open2=0;
+        if num_DF_open2 <= 92 then num_DF_open2+1;
+     end;
+  end;
+
+ *** BUB0102 - Number of Open Local AND Internet Accounts ***;
+  if cnxid=' ' then num_FN_open2=99;
+  else if cnxid ne ' ' and (Srv_Typ not in ('F','N')) then num_FN_open2=98;
+  else if cnxid ne ' ' and (Srv_Typ not in ('F','N')) and (last_status in ('9','B','F','N','P','U',' ') ) then do;
+     if num_FN_open2=98 then num_FN_open2=96;
+  end;
+  else if cnxid ne ' '
+       AND (indexc(Srv_Typ,'F') ne 0 AND indexc(Srv_Typ,'N') ne 0) then do;
+     if (last_status in ('9','B','F','N','P','U',' ') ) then do;
+        if num_FN_open2=98 then num_FN_open2=96;
+        else num_FN_open2=96;
+     end;
+     else if (last_status not in ('9','B','F','N','P','U',' ') ) then do;
+        if num_FN_open2=98 then num_FN_open2=0;
+        if num_FN_open2=96 then num_FN_open2=0;
+        if num_FN_open2 <= 92 then num_FN_open2+1;
+     end;
+  end;
+
+ %mend;
+
+ %numoaccts(I);
+ %numoaccts(F);
+ %numoaccts(US);
+ %numoaccts(EGW);
+ %numoaccts(N);
+
+ keep cnxid 
+ account_number Srv_Typ mos_since_reported last_status
+ num_I_open2
+ num_F_open2
+ num_US_open2
+ num_EGW_open2
+ num_N_open2
+ num_DF_open2
+ num_FN_open2
+;
+ run;
+
+ proc sort data= all_temp out=all_var11;
+ by cnxid descending mos_since_reported ;
+ run;
+
+ Data all_var11;
+ set all_var11;
+ by cnxid;
+
+if (first.cnxid) then do;
+ num_accounts_rep_3=0;
+ num_accounts_rep_6=0;
+ num_accounts_rep_12=0;
+ num_accounts=0;
+end;
+
+  *** TOT0101 - Number of Accounts ***;
+  if cnxid=' ' then num_accounts=99;
+  else if cnxid ne ' ' then do;
+     if num_accounts <= 92 then num_accounts+1;
+  end;
+
+   *** TOT0103 - Number of Accounts Reported in Last 3 Months ***;
+  if cnxid=' ' then num_accounts_rep_3=99;
+  else if cnxid ne ' ' and (mos_since_reported > 2) then num_accounts_rep_3=97;
+  else if (cnxid ne ' ' and 0<= mos_since_reported <=2) then do;
+     if num_accounts_rep_3=97 then num_accounts_rep_3=0;
+     if num_accounts_rep_3=94 then num_accounts_rep_3=0;
+     if num_accounts_rep_3 <= 92 then num_accounts_rep_3+1;
+  end;
+
+  *** TOT0104   -       Number of Accounts Reported in Last 6 Months ***;
+  if cnxid=' ' then num_accounts_rep_6=99;
+  else if cnxid ne ' ' and (mos_since_reported > 5) then num_accounts_rep_6=97;
+  else if (cnxid ne ' ' and 0 <= mos_since_reported <=5) then do;
+     if num_accounts_rep_6=97 then num_accounts_rep_6=0;
+     if num_accounts_rep_6=94 then num_accounts_rep_6=0;
+     if num_accounts_rep_6 <= 92 then num_accounts_rep_6+1;
+  end;
+
+    *** TOT0105 - Number of Accounts Reported in Last 12 Months ***;
+  if cnxid=' ' then num_accounts_rep_12=99;
+  else if cnxid ne ' ' and (mos_since_reported > 11) then num_accounts_rep_12=97;
+  else if (cnxid ne ' ' and 0 <= mos_since_reported <=11) then do;
+     if num_accounts_rep_12=97 then num_accounts_rep_12=0;
+     if num_accounts_rep_12 <= 92 then num_accounts_rep_12+1;
+  end;
+
+keep
+cnxid
+num_accounts_rep_3
+num_accounts_rep_6
+num_accounts_rep_12
+mos_since_reported
+account_number
+last_status
+num_accounts
+Srv_Typ
+;
+run;
+
+ proc sort data= all_temp out=all_var1;
+ by cnxid descending Srv_Typ descending mos_since_reported descending last_status;
+ run;
+
+ Data all_var1;
+ set all_var1;
+ by cnxid;
+
+if (first.cnxid) then do;
+ num_accounts=0;
+ num_I=0;
+ num_F=0;
+ num_US=0;
+ num_EGW=0;
+ num_N=0;
+ num_DF=0;
+ num_FN=0;
+ num_I_rep_3=0;
+ num_F_rep_3=0;
+ num_US_rep_3=0;
+ num_EGW_rep_3=0;
+ num_I_rep_6=0;
+ num_F_rep_6=0;
+ num_US_rep_6=0;
+ num_EGW_rep_6=0;
+ num_I_rep_12=0;
+ num_F_rep_12=0;
+ num_US_rep_12=0;
+ num_EGW_rep_12=0;
+ end; 
+
+
+  *** TOT0101 - Number of Accounts ***;
+  if cnxid=' ' then num_accounts=99;
+  else if cnxid ne ' ' then do;
+     if num_accounts <= 92 then num_accounts+1;
+  end;
+
+  *** WRL0101 - Number of Wireless Accounts ***;
+  *** LND0101 - Number of Landline Accounts ***;
+  *** PTV0101 - Number of Paid TV Accounts ***;
+  *** UTL0101 - Number of Utility Accounts ***;
+  *** INT0101 - Number of Internet Accounts ***;
+  %macro numaccts(servicetype); 
+
+  if cnxid=' ' then num_&servicetype=99;
+  else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype=98;
+  if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")>0) then do;
+     if num_&servicetype=98 then num_&servicetype=0;
+     if num_&servicetype <= 92 then num_&servicetype+1;
+  end;
+
+  %mend;
+
+ %numaccts(I);
+ %numaccts(F);
+ %numaccts(US);
+ %numaccts(EGW);
+ %numaccts(N); 
+ %numaccts(FN); 
+ %numaccts(DF); 
+
+  *** BUA0101 - Number of Local AND Long Distance Accounts ***;
+  if cnxid=' ' then num_DF=99;
+  else if cnxid ne ' ' and (Srv_Typ not in ('D','F') )  then num_DF=98;
+  else if cnxid ne ' ' and Srv_Typ ne ' ' then do;
+     if indexc(Srv_Typ,'D') ne 0 AND indexc(Srv_Typ,'F') ne 0 then do;
+        if num_DF=98 then num_DF=0;
+        if num_DF <= 92 then num_DF+1;
+     end;
+  end;
+
+  *** BUB0101 - Number of Local AND Internet Accounts ***;
+  if cnxid=' ' then num_FN=99;
+  else if cnxid ne ' ' and (Srv_Typ not in ('F','N') ) then num_FN=98;
+  else if cnxid ne ' ' and Srv_Typ ne ' ' then do;
+
+     if index(Srv_Typ,'F') ne 0 AND index(Srv_Typ,'N') ne 0 then do;
+        if num_FN=98 then num_FN=0;
+        if num_FN <= 92 then num_FN+1;
+     end;
+  end;
+
+    *** WRL0103 - Number of Wireless Accounts Reported in Last 3 Months ***;
+    *** LND0103 - Number of Landline Accounts Reported in Last 3 Months ***;
+    *** PTV0103 - Number of Paid TV Accounts Reported in Last 3 Months ***;
+    *** UTL0103 - Number of Utiltity Accounts Reported in Last 3 Months ***;
+    %macro numaccts(servicetype);
+
+    if cnxid=' ' then num_&servicetype._rep_3=99;
+    else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype._rep_3=98;
+    else if cnxid ne ' ' and (mos_since_reported > 2) then do;
+         if num_&servicetype._rep_3=98 then num_&servicetype._rep_3=97;
+         else num_&servicetype._rep_3=97;
+    end;
+    else if (cnxid ne ' ' and 0<= mos_since_reported <=2) and (indexc(Srv_Typ,"&servicetype") ne 0) then do;
+       if num_&servicetype._rep_3=98 then num_&servicetype._rep_3=0;
+       if num_&servicetype._rep_3=97 then num_&servicetype._rep_3=0;
+       if num_&servicetype._rep_3 <= 92 then num_&servicetype._rep_3+1;
+    end;
+
+    %mend;
+
+    %numaccts(I);
+    %numaccts(F);
+    %numaccts(US);
+    %numaccts(EGW);
+
+    *** WRL0104 - Number of Wireless Accounts Reported in Last 6 Months ***;
+    *** LND0104 - Number of Landline Accounts Reported in Last 6 Months ***;
+    *** PTV0104 - Number of Paid TV Accounts Reported in Last 6 Months ***;
+    *** UTL0104 - Number of Utiltiy Accounts Reported in Last 6 Months ***;
+    %macro numaccts(servicetype);
+
+    if cnxid=' ' then num_&servicetype._rep_6=99;
+    else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype._rep_6=98;
+    else if (cnxid ne ' ' and (mos_since_reported > 5 ) ) then do;
+        if num_&servicetype._rep_6=98 then num_&servicetype._rep_6=97;
+        else num_&servicetype._rep_6=97;
+    end;
+    else if (cnxid ne ' ' and 0 <= mos_since_reported <= 5 ) and
+             indexc(Srv_Typ,"&servicetype") ne 0 then do;
+       if num_&servicetype._rep_6=98 then num_&servicetype._rep_6=0;
+       if num_&servicetype._rep_6=97 then num_&servicetype._rep_6=0;
+       if num_&servicetype._rep_6 <= 92 then num_&servicetype._rep_6+1;
+    end;
+
+    %mend;
+
+    %numaccts(I);
+    %numaccts(F);
+    %numaccts(US);
+    %numaccts(EGW);
+
+    *** WRL0105 - Number of Wireless Accounts Reported in Last 12 Months ***;
+    *** LND0105 - Number of Landline Accounts Reported in Last 12 Months ***;
+    *** PTV0105 - Number of Paid TV Accounts Reported in Last 12 Months ***;
+    *** UTL0105 - Number of Utility Accounts Reported in Last 12 Months ***;
+    %macro numaccts(servicetype);
+
+    if cnxid=' ' then num_&servicetype._rep_12=99;
+    else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype._rep_12=98;
+    else if (cnxid ne ' ' and (mos_since_reported > 11) ) then do;
+       if num_&servicetype._rep_12=98 then num_&servicetype._rep_12=97;
+       else num_&servicetype._rep_12=97;
+    end;
+    else if (cnxid ne ' ' and 0 <= mos_since_reported <= 11 ) and
+             (indexc(Srv_Typ,"&servicetype") ne 0) then do;
+       if num_&servicetype._rep_12=98 then num_&servicetype._rep_12=0;
+       if num_&servicetype._rep_12=97 then num_&servicetype._rep_12=0;
+       if num_&servicetype._rep_12 <= 92 then num_&servicetype._rep_12+1;
+    end;
+
+    %mend;
+
+    %numaccts(I);
+    %numaccts(F);
+    %numaccts(US);
+    %numaccts(EGW);
+
+keep
+cnxid
+account_number Srv_Typ mos_since_reported last_status
+num_accounts                                                                                           
+num_I                                                                                                 
+num_F                                                                                                
+num_US                                                                                              
+num_EGW                                                                                               
+num_N                                                                                                 
+num_DF                                                                                                 
+num_FN                                                                                                
+num_I_rep_3                                                                                            
+num_F_rep_3                                                                                           
+num_US_rep_3                                                                                           
+num_EGW_rep_3                                                                                         
+num_I_rep_6                                                                                            
+num_F_rep_6                                                                                           
+num_US_rep_6                                                                                           
+num_EGW_rep_6                                                                                         
+num_I_rep_12                                                                                           
+num_F_rep_12                                                                                           
+num_US_rep_12                                                                                          
+num_EGW_rep_12                                                                                   
+;
+run;
+
+ proc sort data= all_temp out=all_var21;
+ by cnxid descending mos_since_connected;
+ run;
+
+Data all_var21;
+ set all_var21;
+ by cnxid;
+
+if (first.cnxid) then do;
+ num_accounts_connected_3=0;
+ num_accounts_connected_6=0;
+ num_accounts_connected_12=0;
+ num_accounts_connected_24=0;
+ num_accounts_connected_36=0;
+ num_accounts_connected_48=0;
+end;
+
+   *** TOT0146 - Number of Accounts Connected in Last 3 Months ***;
+   *** TOT0106 - Number of Accounts Connected in Last 6 Months ***;
+   *** TOT0107 - Number of Accounts Connected in Last 12 Months ***;
+   *** TOT0108 - Number of Accounts Connected in Last 24 Months ***;
+   *** TOT0109 - Number of Accounts Connected in Last 36 Months ***;
+   *** TOT0110 - Number of Accounts Connected in Last 48 Months ***;
+   %macro numcon(min,max);
+   if cnxid=' ' then num_accounts_connected_&max=99;
+   else if cnxid ne ' ' and (mos_since_connected > &max) then num_accounts_connected_&max=97;
+   else if cnxid ne ' ' and (&min <= mos_since_connected <= &max) then do;
+      if num_accounts_connected_&max=97 then num_accounts_connected_&max=0;
+      if num_accounts_connected_&max <= 92 then num_accounts_connected_&max+1;
+   end;
+   %mend;
+
+   %numcon(-1,3);
+   %numcon(-1,6);
+   %numcon(-1,12);
+   %numcon(-1,24);
+   %numcon(-1,36);
+   %numcon(-1,48);
+
+ keep
+ cnxid account_number mos_since_connected
+ num_accounts_connected_3
+ num_accounts_connected_6
+ num_accounts_connected_12
+ num_accounts_connected_24
+ num_accounts_connected_36
+ num_accounts_connected_48
+ ; 
+ run;
+
+ proc sort data= all_temp out=all_var2;
+ by cnxid descending Srv_Typ descending mos_since_connected;
+ run;
+
+ Data all_var2;
+ set all_var2;
+ by cnxid;
+
+if (first.cnxid) then do;
+ num_I_connected_6=0;
+ num_F_connected_6=0;
+ num_US_connected_6=0;
+ num_EGW_connected_6=0;
+ num_I_connected_12=0;
+ num_F_connected_12=0;
+ num_US_connected_12=0;
+ num_EGW_connected_12=0;
+ num_I_connected_24=0;
+ num_F_connected_24=0;
+ num_US_connected_24=0;
+ num_EGW_connected_24=0;
+ num_I_connected_36=0;
+ num_F_connected_36=0;
+ num_US_connected_36=0;
+ num_EGW_connected_36=0;
+ num_I_connected_48=0;
+ num_F_connected_48=0;
+ num_US_connected_48=0;
+ num_EGW_connected_48=0;
+end;
+
+   *** WRL0106 - Number of Wireless Accounts Connected in Last 6 Months ***;
+   *** WRL0107 - Number of Wireless Accounts Connected in Last 12 Months ***;
+   *** WRL0108 - Number of Wireless Accounts Connected in Last 24 Months ***;
+   *** WRL0109 - Number of Wireless Accounts Connected in Last 36 Months ***;
+   *** WRL0110 - Number of Wireless Accounts Connected in Last 48 Months ***;
+   *** LND0106 - Number of Landline Accounts Connected in Last 6 Months ***;
+   *** LND0107 - Number of Landline Accounts Connected in Last 12 Months ***;
+   *** LND0108 - Number of Landline Accounts Connected in Last24 Months ***;
+   *** LND0109 - Number of Landline Accounts Connected in Last 36 Months ***;
+   *** LND0110 - Number of Landline Accounts Connected in Last 48 Months ***;
+   *** PTV0106 - Number of Paid TV Accounts Connected in Last 6 Months ***;
+   *** PTV0107 - Number of Paid TV Accounts Connected in Last 12 Months ***;
+   *** PTV0108 - Number of Paid TV Accounts Connected in Last 24 Months ***;
+   *** PTV0109 - Number of Paid TV Accounts Connected in Last 36 Months ***;
+   *** PTV0110 - Number of Paid TV Accounts Connected in Last 48 Months ***;
+   *** UTL0106 - Number of Utility Accounts Connected in Last 6 Months ***;
+   *** UTL0107 - Number of Utility Accounts Connected in Last 12 Months ***;
+   *** UTL0108 - Number of Utility Accounts Connected in Last 24 Months ***;
+   *** UTL0109 - Number of Utility Accounts Connected in Last 36 Months ***;
+   *** UTL0110 - Number of Utility Accounts Connected in Last 48 Months ***;
+   %macro numscon(servicetype,min,max);
+
+   if cnxid=' ' then num_&servicetype._connected_&max=99;
+   else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype._connected_&max=98;
+   else if cnxid ne ' ' and (mos_since_connected > &max) then do;
+       if num_&servicetype._connected_&max=98 then num_&servicetype._connected_&max=97;
+       else num_&servicetype._connected_&max=97;
+   end;
+   else if cnxid ne ' ' and (&min <= mos_since_connected <= &max) and (indexc(Srv_Typ,"&servicetype") ne 0) then do;
+
+      if &min <= mos_since_connected <= &max then do;
+         if num_&servicetype._connected_&max=98 then num_&servicetype._connected_&max=0;
+         if num_&servicetype._connected_&max=97 then num_&servicetype._connected_&max=0;
+         if num_&servicetype._connected_&max <= 92 then num_&servicetype._connected_&max+1;
+      end;
+   end;
+
+   %mend;
+
+   **** Service Type: F-local phone, I-Wireless, U,S-Paid TV, E,G,W-Utilities ****;
+   %numscon(I,-1,6);
+   %numscon(I,-1,12);
+   %numscon(I,-1,24);
+   %numscon(I,-1,36);
+   %numscon(I,-1,48);
+   %numscon(F,-1,6);
+   %numscon(F,-1,12);
+   %numscon(F,-1,24);
+   %numscon(F,-1,36);
+   %numscon(F,-1,48);
+   %numscon(US,-1,6);
+   %numscon(US,-1,12);
+   %numscon(US,-1,24);
+   %numscon(US,-1,36);
+   %numscon(US,-1,48);
+   %numscon(EGW,-1,6);
+   %numscon(EGW,-1,12);
+   %numscon(EGW,-1,24);
+   %numscon(EGW,-1,36);
+   %numscon(EGW,-1,48);
+
+keep cnxid account_number
+     Srv_Typ mos_since_connected
+     num_I_connected_6
+     num_I_connected_12
+     num_I_connected_24
+     num_I_connected_36
+     num_I_connected_48
+     num_F_connected_6
+     num_F_connected_12
+     num_F_connected_24
+     num_F_connected_36
+     num_F_connected_48
+     num_US_connected_6
+     num_US_connected_12
+     num_US_connected_24
+     num_US_connected_36
+     num_US_connected_48
+     num_EGW_connected_6
+     num_EGW_connected_12
+     num_EGW_connected_24
+     num_EGW_connected_36
+     num_EGW_connected_48
+;
+run;
+
+%macro numdcon(min,max);
+
+Data all_var31&max;
+set all_temp;
+boy=(last_status not in ('B','N','P','U') );
+mo&max=(mos_since_disconnected > &max);
+run;
+
+ proc sort data= all_var31&max out=all_var31&max;
+ by cnxid descending mo&max descending boy;
+ run;
+
+ Data all_var31&max;
+ set all_var31&max;
+ by cnxid;
+
+if (first.cnxid) then do;
+   num_accounts_inv_disconnected_3=0;
+   num_accounts_inv_disconnected_6=0;
+   num_accounts_inv_disconnected_12=0;
+   num_accounts_inv_disconnected_24=0;
+   num_accounts_inv_disconnected_36=0;
+   num_accounts_inv_disconnected_48=0;
+end;
+
+   *** TOT0148 - Number of Accounts Involuntary Disconnected in Last 3 Months ***;
+   *** TOT0111 - Number of Accounts Involuntary Disconnected in Last 6 Months ***;
+   *** TOT0112 - Number of Accounts Involuntary Disconnected in Last 12 Months ***;
+   *** TOT0113 - Number of Accounts Involuntary Disconnected in Last 24 Months ***;
+   *** TOT0114 - Number of Accounts Involuntary Disconnected in Last 36 Months ***;
+   *** TOT0115 - Number of Accounts Involuntary Disconnected in Last 48 Months ***;
+
+   if cnxid=' ' then num_accounts_inv_disconnected_&max=99;
+   else if cnxid ne ' ' and (mos_since_disconnected > &max) then num_accounts_inv_disconnected_&max=97;
+   else if cnxid ne ' ' and (&min <= mos_since_disconnected <= &max) and
+        (last_status not in ('B','N','P','U') ) then do;
+      if num_accounts_inv_disconnected_&max=97 then num_accounts_inv_disconnected_&max=95;
+      else num_accounts_inv_disconnected_&max=95;
+   end;
+   else if cnxid ne ' ' and (&min <= mos_since_disconnected <= &max) and (last_status in ('B','N','P','U') ) then do;
+      if num_accounts_inv_disconnected_&max=97 then num_accounts_inv_disconnected_&max=0;
+      if num_accounts_inv_disconnected_&max=95 then num_accounts_inv_disconnected_&max=0;
+      if num_accounts_inv_disconnected_&max <= 92 then num_accounts_inv_disconnected_&max+1;
+   end;
+
+keep cnxid mos_since_disconnected last_status mo&max
+     boy num_accounts_inv_disconnected_&max
+;
+
+run;
+
+proc sort data=all_var31&max out=all_var31&max;
+by cnxid;
+run;
+
+
+   %mend;
+   %numdcon(-2,3);
+   %numdcon(-2,6);
+   %numdcon(-2,12);
+   %numdcon(-2,24);
+   %numdcon(-2,36);
+   %numdcon(-2,48);
+
+Data all_var31;
+merge all_var313 all_var316 all_var3112 all_var3124 all_var3136 all_var3148;
+by cnxid;
+keep cnxid mos_since_disconnected last_status
+     num_accounts_inv_disconnected_3
+     num_accounts_inv_disconnected_6
+     num_accounts_inv_disconnected_12
+     num_accounts_inv_disconnected_24
+     num_accounts_inv_disconnected_36
+     num_accounts_inv_disconnected_48
+;
+run;
+
+
+ proc sort data= all_temp out=all_var311;
+ by cnxid descending mos_since_disconnected ;
+ run;
+
+ Data all_var311;
+ set all_var311;
+ by cnxid;
+
+if (first.cnxid) then do;
+   num_accounts_disconnected_3=0;
+end;
+
+   *** TOT0147 - Number of Accounts Disconnected in Last 3 Months ***;
+   if cnxid=' ' then num_accounts_disconnected_3=99;
+   else if cnxid ne ' ' and (mos_since_disconnected > 3) then num_accounts_disconnected_3=97;
+   else if cnxid ne ' ' and (-2 <= mos_since_disconnected <= 3) then do;
+      if num_accounts_disconnected_3=97 then num_accounts_disconnected_3=0;
+      if num_accounts_disconnected_3 <= 92 then num_accounts_disconnected_3+1;
+   end;
+
+ keep cnxid mos_since_disconnected num_accounts_disconnected_3
+;
+run;
+
+
+ proc sort data= all_temp out=all_var3;
+ by cnxid descending Srv_Typ descending mos_since_disconnected descending last_status;
+ run;
+
+
+ Data all_var3;
+ set all_var3;
+ by cnxid;
+
+ if (first.cnxid) then do;
+    num_I_inv_disconnected_6=0;
+    num_I_inv_disconnected_12=0;
+    num_I_inv_disconnected_24=0;
+    num_I_inv_disconnected_36=0;
+    num_I_inv_disconnected_48=0;
+    num_F_inv_disconnected_6=0;
+    num_F_inv_disconnected_12=0;
+    num_F_inv_disconnected_24=0;
+    num_F_inv_disconnected_36=0;
+    num_F_inv_disconnected_48=0;
+    num_US_inv_disconnected_6=0;
+    num_US_inv_disconnected_12=0;
+    num_US_inv_disconnected_24=0;
+    num_US_inv_disconnected_36=0;
+    num_US_inv_disconnected_48=0;
+    num_EGW_inv_disconnected_6=0;
+    num_EGW_inv_disconnected_12=0;
+    num_EGW_inv_disconnected_24=0;
+    num_EGW_inv_disconnected_36=0;
+    num_EGW_inv_disconnected_48=0;
+end;
+
+   *** WRL0111 - Number of Wireless Accounts Disconnected in Last 6 Months ***;
+   *** WRL0112 - Number of Wireless Accounts Disconnected in Last 12 Months ***;
+   *** WRL0113 - Number of Wireless Accounts Disconnected in Last 24 Months ***;
+   *** WRL0114 - Number of Wireless Accounts Disconnected in Last 36 Months ***;
+   *** WRL0115 - Number of Wireless Accounts Disconnected in Last 48 Months ***;
+   *** LND0111 - Number of Landline Accounts Disconnected in Last 6 Months ***;
+   *** LND0112 - Number of Landline Accounts Disconnected in Last 12 Months ***;
+   *** LND0113 - Number of Landline Accounts Disconnected in Last 24 Months ***;
+   *** LND0114 - Number of Landline Accounts Disconnected in Last 36 Months ***;
+   *** LND0115 - Number of Landline Accounts Disconnected in Last 48 Months ***;
+   *** PTV0111 - Number of Paid TV Accounts Disconnected in Last 6 Months ***;
+   *** PTV0112 - Number of Paid TV Accounts Disconnected in Last 12 Months ***;
+   *** PTV0113 - Number of Paid TV Accounts Disconnected in Last 24 Months ***;
+   *** PTV0114 - Number of Paid TV Accounts Disconnected in Last 36 Months ***;
+   *** PTV0115 - Number of Paid TV Accounts Disconnected in Last 48 Months ***;
+   *** UTL0111 - Number of Utility Accounts Disconnected in Last 6 Months ***;
+   *** UTL0112 - Number of Utility Accounts Disconnected in Last 12 Months ***;
+   *** UTL0113 - Number of Utility Accounts Disconnected in Last 24 Months ***;
+   *** UTL0114 - Number of Utility Accounts Disconnected in Last 36 Months ***;
+   *** UTL0115 - Number of Utility Accounts Disconnected in Last 48 Months ***;
+   %macro numsdcon(servicetype,min,max);
+   if cnxid=' ' then num_&servicetype._inv_disconnected_&max=99;
+   else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype._inv_disconnected_&max=98;
+   else if cnxid ne ' ' and (mos_since_disconnected > &max) then do;
+      if num_&servicetype._inv_disconnected_&max=98 then num_&servicetype._inv_disconnected_&max=97;
+      else num_&servicetype._inv_disconnected_&max=97;
+   end;
+   else if cnxid ne ' ' and (last_status not in ('B','N','P','U') ) then do;
+        if num_&servicetype._inv_disconnected_&max=98 then num_&servicetype._inv_disconnected_&max=95;
+        if num_&servicetype._inv_disconnected_&max=97 then num_&servicetype._inv_disconnected_&max=95;
+        else num_&servicetype._inv_disconnected_&max=95;
+   end;
+   else if cnxid ne ' ' and (&min <= mos_since_disconnected <= &max) and (indexc(Srv_Typ,"&servicetype") ne 0 ) then do;
+
+      if &min <= mos_since_disconnected <= &max and (last_status in ('B','N','P','U')) then do;
+         if num_&servicetype._inv_disconnected_&max=98 then num_&servicetype._inv_disconnected_&max=0;
+         if num_&servicetype._inv_disconnected_&max=97 then num_&servicetype._inv_disconnected_&max=0;
+         if num_&servicetype._inv_disconnected_&max=95 then num_&servicetype._inv_disconnected_&max=0;
+         if num_&servicetype._inv_disconnected_&max <=92 then num_&servicetype._inv_disconnected_&max+1;
+      end;
+   end;
+
+   %mend;
+
+   **** Service Type: F-local phone, I-Wireless, U,S-Paid TV, E,G,W-Utilities ****;
+   %numsdcon(I,-1,6);
+   %numsdcon(I,-1,12);
+   %numsdcon(I,-1,24);
+   %numsdcon(I,-1,36);
+   %numsdcon(I,-1,48);
+   %numsdcon(F,-1,6);
+   %numsdcon(F,-1,12);
+   %numsdcon(F,-1,24);
+   %numsdcon(F,-1,36);
+   %numsdcon(F,-1,48);
+   %numsdcon(US,-1,6);
+   %numsdcon(US,-1,12);
+   %numsdcon(US,-1,24);
+   %numsdcon(US,-1,36);
+   %numsdcon(US,-1,48);
+   %numsdcon(EGW,-1,6);
+   %numsdcon(EGW,-1,12);
+   %numsdcon(EGW,-1,24);
+   %numsdcon(EGW,-1,36);
+   %numsdcon(EGW,-1,48);
+
+keep cnxid Account_number Srv_Typ mos_since_disconnected last_status
+    num_I_inv_disconnected_6
+    num_I_inv_disconnected_12
+    num_I_inv_disconnected_24
+    num_I_inv_disconnected_36
+    num_I_inv_disconnected_48
+    num_F_inv_disconnected_6
+    num_F_inv_disconnected_12
+    num_F_inv_disconnected_24
+    num_F_inv_disconnected_36
+    num_F_inv_disconnected_48
+    num_US_inv_disconnected_6
+    num_US_inv_disconnected_12
+    num_US_inv_disconnected_24
+    num_US_inv_disconnected_36
+    num_US_inv_disconnected_48
+    num_EGW_inv_disconnected_6
+    num_EGW_inv_disconnected_12
+    num_EGW_inv_disconnected_24
+    num_EGW_inv_disconnected_36
+    num_EGW_inv_disconnected_48
+;
+run;
+
+Data all_var411;
+set all_temp;
+clsd=(last_status ne '0');
+mo=(mos_since_reported > 5);
+run;
+
+ proc sort data= all_var411 out=all_var411;
+ by cnxid descending mo descending clsd;
+ run;
+
+ Data all_var411;
+ set all_var411;
+ by cnxid;
+
+ if (first.cnxid) then do;
+    num_0_rep_6=0;
+ end;
+
+ *** TOT0140 - Number of Satisfactory Accounts Reported in Last 6 Months ***;
+   if cnxid=' ' then num_0_rep_6=99;
+   else if cnxid ne ' ' and (mos_since_reported > 5) then num_0_rep_6=97;
+   else if cnxid ne ' ' and (0 <= mos_since_reported <= 5) and (last_status ne '0') then do;
+      if num_0_rep_6=97 then num_0_rep_6=95;
+      else num_0_rep_6=95;
+   end;
+   else if cnxid ne ' ' and (0<= mos_since_reported <=5) and (last_status = '0') then do;
+      if num_0_rep_6=97 then num_0_rep_6=0;
+      if num_0_rep_6=95 then num_0_rep_6=0;
+      if num_0_rep_6 <= 92 then num_0_rep_6+1;
+   end;
+ drop clsd;
+ run;
+
+ proc sort data=all_var411 out=all_var411;
+ by cnxid;
+ run;
+
+ Data all_var412;
+ set all_temp;
+ clsd=(last_status ne '9');
+ mo=(mos_since_reported > 5);
+ run;
+
+ proc sort data= all_var412 out=all_var412;
+ by cnxid descending mo descending clsd;
+ run;
+
+ Data all_var412;
+ set all_var412;
+ by cnxid;
+
+ if (first.cnxid) then do;
+    num_cls_paid_rep_6=0;
+ end;
+ 
+ *** TOT0141 - Number of Paid Closed Accounts Reported in Last 6 Months ***;
+  if cnxid=' ' then num_cls_paid_rep_6=99;
+  else if cnxid ne ' ' and (mos_since_reported > 5) then num_cls_paid_rep_6=97;
+  else if cnxid ne ' ' and (0 <= mos_since_reported <= 5) and (last_status ne '9') then do;
+     if num_cls_paid_rep_6=97 then num_cls_paid_rep_6=95;
+     else num_cls_paid_rep_6=95;
+  end;
+  else if cnxid ne ' ' and (0<= mos_since_reported <=5) and (last_status = '9') then do;
+     if num_cls_paid_rep_6=97 then num_cls_paid_rep_6=0;
+     if num_cls_paid_rep_6=95 then num_cls_paid_rep_6=0;
+     if num_cls_paid_rep_6 <= 92 then num_cls_paid_rep_6+1;
+  end;
+ drop  clsd;
+ run;
+
+ proc sort data=all_var412 out=all_var412;
+ by cnxid;
+ run;
+
+ Data all_var413;
+ set all_temp;
+ clsd=(last_status ne '1');
+ mo=(mos_since_reported > 5);
+ run;
+
+ proc sort data= all_var413 out=all_var413;
+ by cnxid descending mo descending clsd;
+ run;
+
+ Data all_var413;
+ set all_var413;
+ by cnxid;
+
+ if (first.cnxid) then do;
+    num_1_rep_6=0;
+ end;
+
+  ***   TOT0142 -       Number of 30 dpd Accounts Reported in Last 6 Months ***;
+  if cnxid=' ' then num_1_rep_6=99;
+  else if cnxid ne ' ' and (mos_since_reported > 5) then num_1_rep_6=97;
+  else if cnxid ne ' ' and (0 <= mos_since_reported <= 5) and (last_status ne '1') then do;
+     if num_1_rep_6=97 then num_1_rep_6=95;
+     else num_1_rep_6=95;
+  end;
+  else if cnxid ne ' ' and (0<= mos_since_reported <=5) and last_status = '1' then do;
+     if num_1_rep_6=95 then num_1_rep_6=0;
+     if num_1_rep_6 <= 92 then num_1_rep_6+1;
+  end;
+ drop  clsd;
+ run;
+
+ proc sort data=all_var413 out=all_var413;
+ by cnxid;
+ run;
+
+ Data all_var414;
+ set all_temp;
+ clsd=(last_status not in ('2','3','4','5','6','B','N','P','U') );
+ mo=(mos_since_reported > 5);
+ run;
+
+ proc sort data= all_var414 out=all_var414;
+ by cnxid descending mo descending clsd;
+ run;
+
+ Data all_var414;
+ set all_var414;
+ by cnxid;
+
+ if (first.cnxid) then do;
+   num_2p_unpaid_rep_6=0;
+ end;
+
+ *** TOT0143 - Number of 60+ or Unpaid Closed Accounts Reported in Last 6 Months ***;
+  if cnxid=' ' then num_2p_unpaid_rep_6=99;
+  else if cnxid ne ' ' and (mos_since_reported > 5) then num_2p_unpaid_rep_6=97;
+  else if cnxid ne ' ' and (0 <= mos_since_reported <= 5) and (last_status not in ('2','3','4','5','6','B','N','P','U') ) then do;
+     if num_2p_unpaid_rep_6=97 then num_2p_unpaid_rep_6=95;
+     else num_2p_unpaid_rep_6=95;
+  end;
+  else if cnxid ne ' ' and (0<= mos_since_reported <=5) and (last_status in ('2','3','4','5','6','B','N','P','U') ) then do;
+     if num_2p_unpaid_rep_6=97 then num_2p_unpaid_rep_6=0;
+     if num_2p_unpaid_rep_6=95 then num_2p_unpaid_rep_6=0;
+     if num_2p_unpaid_rep_6 <= 92 then num_2p_unpaid_rep_6+1;
+  end;
+
+ run;
+
+ proc sort data=all_var414 out=all_var414;
+ by cnxid;
+ run;
+
+ Data all_var415;
+ set all_temp;
+ clsd=(last_status not in ('3','4','5','6','B','N','P','U') );
+ mo=(mos_since_reported > 5);
+ run;
+
+ proc sort data= all_var415 out=all_var415;
+ by cnxid descending mo descending clsd;
+ run;
+
+ Data all_var415;
+ set all_var415;
+ by cnxid;
+
+ if (first.cnxid) then do;
+   num_3p_unpaid_rep_6=0;
+ end;
+
+ ***   TOT0144 -       Number of 90+ or Unpaid Closed Accounts Reported in Last 6 Months ***;
+  if cnxid=' ' then num_3p_unpaid_rep_6=99;
+  else if cnxid ne ' ' and (mos_since_reported > 5) then num_3p_unpaid_rep_6=97;
+  else if cnxid ne ' ' and (0 <= mos_since_reported <= 5) and (last_status not in ('3','4','5','6','B','N','P','U') ) then do;
+     if num_3p_unpaid_rep_6=97 then num_3p_unpaid_rep_6=95;
+     else num_3p_unpaid_rep_6=95;
+  end;
+  else if cnxid ne ' ' and (0<= mos_since_reported <=5) and (last_status in ('3','4','5','6','B','N','P','U') ) then do;
+     if num_3p_unpaid_rep_6=97 then num_3p_unpaid_rep_6=0;
+     if num_3p_unpaid_rep_6=95 then num_3p_unpaid_rep_6=0;
+     if num_3p_unpaid_rep_6 <= 92 then num_3p_unpaid_rep_6+1;
+  end;
+ drop  clsd;
+ run;
+
+ proc sort data=all_var415 out=all_var415;
+ by cnxid;
+ run;
+
+ Data all_var416;
+ set all_temp;
+ clsd=(last_status not in ('B','N','P','U') );
+ mo=(mos_since_reported > 5);
+ run;
+
+ proc sort data= all_var416 out=all_var416;
+ by cnxid descending mo descending clsd;
+ run;
+
+ Data all_var416;
+ set all_var416;
+ by cnxid;
+
+ if (first.cnxid) then do;
+   num_cls_unpaid_rep_6=0;
+ end;
+
+ *** TOT0145 - Number of Unpaid Closed Accounts Reported in Last 6 Months ***;
+  if cnxid=' ' then num_cls_unpaid_rep_6=99;
+  else if cnxid ne ' ' and (mos_since_reported > 5) then num_cls_unpaid_rep_6=97;
+  else if cnxid ne ' ' and (0 <= mos_since_reported <=5) and (last_status not in ('B','N','P','U') ) then do;
+     if num_cls_unpaid_rep_6=97 then num_cls_unpaid_rep_6=95;
+     else num_cls_unpaid_rep_6=95;
+  end;
+  else if cnxid ne ' ' and (0<= mos_since_reported <=5) and (last_status in ('B','N','P','U') ) then do;
+     if num_cls_unpaid_rep_6=97 then num_cls_unpaid_rep_6=0;
+     if num_cls_unpaid_rep_6=95 then num_cls_unpaid_rep_6=0;
+     if num_cls_unpaid_rep_6 <= 92 then num_cls_unpaid_rep_6+1;
+  end;
+ drop  clsd;
+ run;
+
+ proc sort data=all_var416 out=all_var416;
+ by cnxid;
+ run;
+
+ Data all_var41;
+ merge all_var411 all_var412 all_var413 all_var414 all_var415 all_var416;
+ by cnxid;
+
+ keep cnxid mos_since_reported last_status num_0_rep_6 num_cls_paid_rep_6 num_1_rep_6 num_2p_unpaid_rep_6 num_3p_unpaid_rep_6 num_cls_unpaid_rep_6;
+
+ run;
+
+ proc sort data= all_temp out=all_var4;
+ by cnxid descending Srv_Typ descending mos_since_reported descending last_status;
+ run;
+
+ Data all_var4;
+ set all_var4;
+ by cnxid;
+
+ if (first.cnxid) then do;
+    num_I_0_rep_6=0;
+    num_F_0_rep_6=0;
+    num_US_0_rep_6=0;
+    num_EGW_0_rep_6=0;
+    num_I_cls_paid_rep_6=0;
+    num_F_cls_paid_rep_6=0;
+    num_US_cls_paid_rep_6=0;
+    num_EGW_cls_paid_rep_6=0;
+    num_I_1_rep_6=0;
+    num_F_1_rep_6=0;
+    num_US_1_rep_6=0;
+    num_EGW_1_rep_6=0;
+    num_I_2p_unpaid_rep_6=0;
+    num_F_2p_unpaid_rep_6=0;
+    num_US_2p_unpaid_rep_6=0;
+    num_EGW_2p_unpaid_rep_6=0;
+    num_I_3p_unpaid_rep_6=0;
+    num_F_3p_unpaid_rep_6=0;
+    num_US_3p_unpaid_rep_6=0;
+    num_EGW_3p_unpaid_rep_6=0;
+    num_I_cls_unpaid_rep_6=0;
+    num_F_cls_unpaid_rep_6=0;
+    num_US_cls_unpaid_rep_6=0;
+    num_EGW_cls_unpaid_rep_6=0;
+ end;
+
+    *** WRL0140 - Number of Satisfactory Wireless Accounts Reported in Last 6 Months ***;
+    *** LND0140 - Number of Satisfactory Landline Accounts Reported in Last 6 Months ***;
+    *** PTV0140 - Number of Satisfactory Paid TV Accounts Reported in Last 6 Months ***;
+    *** UTL0140 - Number of Satisfactory Utitlity Accounts Reported in Last 6 Months ***;
+    %macro numaccts(servicetype);
+
+    if cnxid=' ' then num_&servicetype._0_rep_6=99;
+    else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype._0_rep_6=98;
+    else if cnxid ne ' ' and (mos_since_reported > 5) then do;
+       if num_&servicetype._0_rep_6=98 then num_&servicetype._0_rep_6=97;
+       else num_&servicetype._0_rep_6=97;
+    end;
+    else if cnxid ne ' ' and (0 <= mos_since_reported <= 5) and (last_status ne '0') then do;
+       if num_&servicetype._0_rep_6=98 then num_&servicetype._0_rep_6=95;
+       if num_&servicetype._0_rep_6=97 then num_&servicetype._0_rep_6=95;
+       else num_&servicetype._0_rep_6=95;
+    end;
+    else if cnxid ne ' ' and (0<= mos_since_reported <=5) and (indexc(Srv_Typ,"&servicetype") ne 0) and
+            (last_status='0') then do;
+               if num_&servicetype._0_rep_6=98 then num_&servicetype._0_rep_6=0;
+               if num_&servicetype._0_rep_6=97 then num_&servicetype._0_rep_6=0;
+               if num_&servicetype._0_rep_6=95 then num_&servicetype._0_rep_6=0;
+               if num_&servicetype._0_rep_6 <= 92 then num_&servicetype._0_rep_6+1;
+    end;
+
+    %mend;
+
+    %numaccts(I);
+    %numaccts(F);
+    %numaccts(US);
+    %numaccts(EGW);
+
+    *** WRL0141 - Number of Paid Closed Wireless Accounts Reported in Last 6 Months ***;
+    *** LND0141 - Number of Paid Closed Landline Accounts Reported in Last 6 Months ***;
+    *** PTV0141 - Number of Paid Closed Paid TV Accounts Reported in Last 6 Months ***;
+    *** UTL0141 - Number of Paid Closed Utitlity Accounts Reported in Last 6 Months ***;
+    %macro numaccts(servicetype);
+
+    if cnxid=' ' then num_&servicetype._cls_paid_rep_6=99;
+    else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype._cls_paid_rep_6=98;
+    else if cnxid ne ' ' and (mos_since_reported > 5) then do;
+       if num_&servicetype._cls_paid_rep_6=98 then num_&servicetype._cls_paid_rep_6=97;
+       else num_&servicetype._cls_paid_rep_6=97;
+    end;
+    else if cnxid ne ' ' and (0 <= mos_since_reported <= 5) and (last_status ne '9') then do;
+       if num_&servicetype._cls_paid_rep_6=98 then num_&servicetype._cls_paid_rep_6=95;
+       if num_&servicetype._cls_paid_rep_6=97 then num_&servicetype._cls_paid_rep_6=95;
+       else num_&servicetype._cls_paid_rep_6=95;
+    end;
+    else if cnxid ne ' ' and (0 <= mos_since_reported <= 5) and (indexc(Srv_Typ,"&servicetype") ne 0) then do;
+       if (last_status='9') then do;
+          if num_&servicetype._cls_paid_rep_6=98 then num_&servicetype._cls_paid_rep_6=0;
+          if num_&servicetype._cls_paid_rep_6=97 then num_&servicetype._cls_paid_rep_6=0;
+          if num_&servicetype._cls_paid_rep_6=95 then num_&servicetype._cls_paid_rep_6=0;
+          if num_&servicetype._cls_paid_rep_6 <= 92 then num_&servicetype._cls_paid_rep_6+1;
+       end;
+    end;
+
+    %mend;
+
+    %numaccts(I);
+    %numaccts(F);
+    %numaccts(US);
+    %numaccts(EGW);
+
+    *** WRL0142 - Number of 30 dpd Wireless Accounts Reported in Last 6 Months ***;
+    *** LND0142 - Number of 30 dpd Landline Accounts Reported in Last 6 Months ***;
+    *** PTV0142 - Number of 30 dpd Paid TV Accounts Reported in Last 6 Months ***;
+    *** UTL0142 - Number of 30 dpd Utitlity Accounts Reported in Last 6 Months ***;
+    %macro numaccts(servicetype);
+
+    if cnxid=' ' then num_&servicetype._1_rep_6=99;
+    else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype._1_rep_6=98;
+    else if cnxid ne ' ' and  (mos_since_reported > 5) then do;
+       if num_&servicetype._1_rep_6=98 then num_&servicetype._1_rep_6=97;
+       else num_&servicetype._1_rep_6=97;
+    end;
+    else if cnxid ne ' ' and  (0 <= mos_since_reported <= 5) and (last_status ne '1')  then do;
+       if num_&servicetype._1_rep_6=98 then num_&servicetype._1_rep_6=95;
+       if num_&servicetype._1_rep_6=97 then num_&servicetype._1_rep_6=95;
+       else num_&servicetype._1_rep_6=95;
+    end;
+    else if cnxid ne ' ' and  (0 <= mos_since_reported <= 5) and
+         last_status='1' and (indexc(Srv_Typ,"&servicetype") ne 0) then do;
+            if num_&servicetype._1_rep_6=98 then num_&servicetype._1_rep_6=0;
+            if num_&servicetype._1_rep_6=97 then num_&servicetype._1_rep_6=0;
+            if num_&servicetype._1_rep_6=95 then num_&servicetype._1_rep_6=0;
+            if num_&servicetype._1_rep_6 <= 92 then num_&servicetype._1_rep_6+1;
+    end;
+
+    %mend;
+
+    %numaccts(I);
+    %numaccts(F);
+    %numaccts(US);
+    %numaccts(EGW);
+
+    *** WRL0143 - Number of 60+ or Unpaid Closed Wireless Accounts Reported in Last 6 Months ***;
+    *** LND0143 - Number of 60+ or Unpaid Closed Landline Accounts Reported in Last 6 Months ***;
+    *** PTV0143 - Number of 60+ or Unpaid Closed Paid TV Accounts Reported in Last 6 Months ***;
+    *** UTL0143 - Number of 60+ or Unpaid Closed Utitlity Accounts Reported in Last 6 Months ***;
+    %macro numaccts(servicetype);
+
+    if cnxid=' ' then num_&servicetype._2p_unpaid_rep_6=99;
+    else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype._2p_unpaid_rep_6=98;
+    else if cnxid ne ' ' and (mos_since_reported > 5) then do;
+       if num_&servicetype._2p_unpaid_rep_6=98 then num_&servicetype._2p_unpaid_rep_6=97;
+       else num_&servicetype._2p_unpaid_rep_6=97;
+    end;
+    else if cnxid ne ' ' and (0 <= mos_since_reported <= 5) and (last_status not in ('2','3','4','5','6','B','N','P','U') ) then do;
+       if num_&servicetype._2p_unpaid_rep_6=98 then num_&servicetype._2p_unpaid_rep_6=95;
+       if num_&servicetype._2p_unpaid_rep_6=97 then num_&servicetype._2p_unpaid_rep_6=95;
+       else num_&servicetype._2p_unpaid_rep_6=95;
+    end;
+    else if cnxid ne ' ' and (0<= mos_since_reported <=5) and (indexc(Srv_Typ,"&servicetype") ne 0) and
+            (last_status in ('2','3','4','5','6','B','N','P','U') ) then do;
+       if num_&servicetype._2p_unpaid_rep_6=98 then num_&servicetype._2p_unpaid_rep_6=0;
+       if num_&servicetype._2p_unpaid_rep_6=97 then num_&servicetype._2p_unpaid_rep_6=0;
+       if num_&servicetype._2p_unpaid_rep_6=95 then num_&servicetype._2p_unpaid_rep_6=0;
+       if num_&servicetype._2p_unpaid_rep_6 <= 92 then num_&servicetype._2p_unpaid_rep_6+1;
+    end;
+
+    %mend;
+
+    %numaccts(I);
+    %numaccts(F);
+    %numaccts(US);
+    %numaccts(EGW);
+
+    *** WRL0144 - Number of 90+ or Unpaid Closed Wireless Accounts Reported in Last 6 Months ***;
+    *** LND0144 - Number of 90+ or Unpaid Closed Landline Accounts Reported in Last 6 Months ***;
+    *** PTV0144 - Number of 90+ or Unpaid Closed Paid TV Accounts Reported in Last 6 Months ***;
+    *** UTL0144 - Number of 90+ or Unpaid Closed Utitlity Accounts Reported in Last 6 Months ***;
+    %macro numaccts(servicetype);
+
+    if cnxid=' ' then num_&servicetype._3p_unpaid_rep_6=99;
+    else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype._3p_unpaid_rep_6=98;
+    else if cnxid ne ' ' and (mos_since_reported > 5) then do;
+        if num_&servicetype._3p_unpaid_rep_6=98 then num_&servicetype._3p_unpaid_rep_6=97;
+        else num_&servicetype._3p_unpaid_rep_6=97;
+    end;
+    else if cnxid ne ' ' and (0 <= mos_since_reported <= 5) and (last_status not in ('3','4','5','6','B','N','P','U') ) then do;
+       if num_&servicetype._3p_unpaid_rep_6=98 then num_&servicetype._3p_unpaid_rep_6=95;
+       if num_&servicetype._3p_unpaid_rep_6=97 then num_&servicetype._3p_unpaid_rep_6=95;
+       else num_&servicetype._3p_unpaid_rep_6=95;
+    end;
+    else if cnxid ne ' ' and (0<= mos_since_reported <=5) and (indexc(Srv_Typ,"&servicetype") ne 0) and
+            (last_status in ('3','4','5','6','B','N','P','U') ) then do;
+       if num_&servicetype._3p_unpaid_rep_6=98 then num_&servicetype._3p_unpaid_rep_6=0;
+       if num_&servicetype._3p_unpaid_rep_6=97 then num_&servicetype._3p_unpaid_rep_6=0;
+       if num_&servicetype._3p_unpaid_rep_6=95 then num_&servicetype._3p_unpaid_rep_6=0;
+       if num_&servicetype._3p_unpaid_rep_6 <= 92 then num_&servicetype._3p_unpaid_rep_6+1;
+    end;
+
+    %mend;
+
+    %numaccts(I);
+    %numaccts(F);
+    %numaccts(US);
+    %numaccts(EGW);
+
+    *** WRL0145 - Number of Unpaid Closed Wireless Accounts Reported in Last 6 Months ***;
+    *** LND0145 - Number of Unpaid Closed Landline Accounts Reported in Last 6 Months ***;
+    *** PTV0145 - Number of Unpaid Closed Paid TV Accounts Reported in Last 6 Months ***;
+    *** UTL0145 - Number of Unpaid Closed Utitlity Accounts Reported in Last 6 Months ***;
+    %macro numaccts(servicetype);
+
+    if cnxid=' ' then num_&servicetype._cls_unpaid_rep_6=99;
+    else if cnxid ne ' ' and (indexc(Srv_Typ,"&servicetype")=0) then num_&servicetype._cls_unpaid_rep_6=98;
+    else if cnxid ne ' ' and (mos_since_reported > 5) then do;
+       if num_&servicetype._cls_unpaid_rep_6=98 then num_&servicetype._cls_unpaid_rep_6=97;
+       else num_&servicetype._cls_unpaid_rep_6=97;
+    end;
+    else if cnxid ne ' ' and (0 <= mos_since_reported <= 5) and (last_status not in ('3','4','5','6','B','N','P','U') ) then do;
+       if num_&servicetype._cls_unpaid_rep_6=98 then num_&servicetype._cls_unpaid_rep_6=95;
+       if num_&servicetype._cls_unpaid_rep_6=97 then num_&servicetype._cls_unpaid_rep_6=95;
+       else num_&servicetype._cls_unpaid_rep_6=95;
+    end;
+    else if cnxid ne ' ' and (0<= mos_since_reported <=5) and (indexc(Srv_Typ,"&servicetype") ne 0) and
+          (last_status in ('3','4','5','6','B','N','P','U') ) then do;
+       if num_&servicetype._cls_unpaid_rep_6=98 then num_&servicetype._cls_unpaid_rep_6=0;
+       if num_&servicetype._cls_unpaid_rep_6=97 then num_&servicetype._cls_unpaid_rep_6=0;
+       if num_&servicetype._cls_unpaid_rep_6=95 then num_&servicetype._cls_unpaid_rep_6=0;
+       if num_&servicetype._cls_unpaid_rep_6 <= 92 then num_&servicetype._cls_unpaid_rep_6+1;
+    end;
+
+    %mend;
+
+    %numaccts(I);
+    %numaccts(F);
+    %numaccts(US);
+    %numaccts(EGW);
+
+keep cnxid Srv_Typ mos_since_reported last_status num_I_0_rep_6 num_F_0_rep_6 num_US_0_rep_6 num_EGW_0_rep_6
+     num_I_cls_paid_rep_6 num_F_cls_paid_rep_6 num_US_cls_paid_rep_6 num_EGW_cls_paid_rep_6
+     num_I_1_rep_6 num_F_1_rep_6 num_US_1_rep_6 num_EGW_1_rep_6
+     num_I_2p_unpaid_rep_6 num_F_2p_unpaid_rep_6 num_US_2p_unpaid_rep_6 num_EGW_2p_unpaid_rep_6
+     num_I_3p_unpaid_rep_6 num_F_3p_unpaid_rep_6 num_US_3p_unpaid_rep_6 num_EGW_3p_unpaid_rep_6
+     num_I_cls_unpaid_rep_6 num_F_cls_unpaid_rep_6 num_US_cls_unpaid_rep_6 num_EGW_cls_unpaid_rep_6
+;
+run;
+
+proc sort data=all_temp out=tito(keep=cnxid Account_number Srv_Typ last_status mos_since_reported 
+                                      mos_since_connected mos_since_disconnected);
+by cnxid;
+run;
+
+proc sort data=all_var0a out=bkp(keep=cnxid num_bkp num_fraud); 
+by cnxid;
+run;
+
+%macro za(n,m);
+
+Data tito&n.1;
+set all_var0a;
+if (0 <= &m <= 92);
+run;
+
+proc sort data=tito&n.1 out=tito&n.1(keep=cnxid &m);
+by cnxid &m;
+run;
+
+Data tito&n.2;
+set all_var0a;
+if (&m > 92);
+run;
+
+proc sort data=tito&n.2 out=tito&n.2(keep=cnxid &m);
+by cnxid descending &m;
+run;
+
+Data tito&n;
+set tito&n.2 tito&n.1;
+run;
+
+proc sort data=tito&n out=tito&n;
+by cnxid;
+run;
+
+%mend;
+%za(1,num_accounts);
+%za(2,num_accounts_open2);
+
+
+%macro z(n,m);
+
+Data tito&n.1;
+set all_var0;
+if (0 <= &m <= 92);
+run;
+
+proc sort data=tito&n.1 out=tito&n.1(keep=cnxid &m);
+by cnxid &m;
+run;
+
+Data tito&n.2;
+set all_var0;
+if (&m > 92);
+run;
+
+proc sort data=tito&n.2 out=tito&n.2(keep=cnxid &m);
+by cnxid descending &m;
+run;
+
+Data tito&n;
+set tito&n.2 tito&n.1;
+run;
+
+proc sort data=tito&n out=tito&n;
+by cnxid;
+run;
+
+%mend;
+%z(3,num_I_open2);
+%z(4,num_F_open2);
+%z(5,num_US_open2);
+%z(6,num_EGW_open2);
+%z(7,num_N_open2);
+%z(8,num_DF_open2);
+%z(9,num_FN_open2);
+
+%macro q(n,m);
+
+Data tito&n.1;
+set all_var11;
+if (0 <= &m <= 92);
+run;
+
+proc sort data=tito&n.1 out=tito&n.1(keep=cnxid &m);
+by cnxid &m;
+run;
+
+Data tito&n.2;
+set all_var11;
+if (&m > 92);
+run;
+
+proc sort data=tito&n.2 out=tito&n.2(keep=cnxid &m);
+by cnxid descending &m;
+run;
+
+Data tito&n;
+set tito&n.2 tito&n.1;
+run;
+
+proc sort data=tito&n out=tito&n;
+by cnxid;
+run;
+
+%mend;
+%q(10,num_accounts_rep_3);
+%q(11,num_accounts_rep_6);
+%q(12,num_accounts_rep_12);
+
+%macro a(n,m);
+
+Data tito&n.1;
+set all_var1;
+if (0 <= &m <= 92);
+run;
+
+proc sort data=tito&n.1 out=tito&n.1(keep=cnxid &m);
+by cnxid &m;
+run;
+
+Data tito&n.2;
+set all_var1;
+if (&m > 92);
+run;
+
+proc sort data=tito&n.2 out=tito&n.2(keep=cnxid &m);
+by cnxid descending &m;
+run;
+
+Data tito&n;
+set tito&n.2 tito&n.1;
+run;
+
+proc sort data=tito&n out=tito&n;
+by cnxid;
+run;
+
+%mend;
+%a(13,num_I);
+%a(14,num_F);
+%a(15,num_US);
+%a(16,num_EGW);
+%a(160,num_N);
+%a(161,num_FN);
+%a(162,num_DF);
+%a(17,num_I_rep_3);
+%a(18,num_F_rep_3);
+%a(19,num_US_rep_3);
+%a(20,num_EGW_rep_3);
+%a(21,num_I_rep_6);
+%a(22,num_F_rep_6);
+%a(23,num_US_rep_6);
+%a(24,num_EGW_rep_6);
+%a(25,num_I_rep_12);
+%a(26,num_F_rep_12);
+%a(27,num_US_rep_12);
+%a(28,num_EGW_rep_12);
+
+%macro b(n,m);
+
+Data tito&n.1;
+set all_var21;
+if (0 <= &m <= 92);
+run;
+
+proc sort data=tito&n.1 out=tito&n.1(keep=cnxid &m);
+by cnxid &m;
+run;
+
+Data tito&n.2;
+set all_var21;
+if (&m > 92);
+run;
+
+proc sort data=tito&n.2 out=tito&n.2(keep=cnxid &m);
+by cnxid descending &m;
+run;
+
+Data tito&n;
+set tito&n.2 tito&n.1;
+run;
+
+proc sort data=tito&n out=tito&n;
+by cnxid;
+run;
+
+%mend;
+%b(29,num_accounts_connected_3);
+%b(30,num_accounts_connected_6);
+%b(31,num_accounts_connected_12);
+%b(32,num_accounts_connected_24);
+%b(33,num_accounts_connected_36);
+%b(34,num_accounts_connected_48);
+
+%macro b(n,m);
+
+Data tito&n.1;
+set all_var2;
+if (0 <= &m <= 92);
+run;
+
+proc sort data=tito&n.1 out=tito&n.1(keep=cnxid &m);
+by cnxid &m;
+run;
+
+Data tito&n.2;
+set all_var2;
+if (&m > 92);
+run;
+
+proc sort data=tito&n.2 out=tito&n.2(keep=cnxid &m);
+by cnxid descending &m;
+run;
+
+Data tito&n;
+set tito&n.2 tito&n.1;
+run;
+
+proc sort data=tito&n out=tito&n;
+by cnxid;
+run;
+
+%mend;
+%b(35,num_I_connected_6);
+%b(36,num_F_connected_6);
+%b(37,num_US_connected_6);
+%b(38,num_EGW_connected_6);
+%b(39,num_I_connected_12);
+%b(40,num_F_connected_12);
+%b(41,num_US_connected_12);
+%b(42,num_EGW_connected_12);
+%b(43,num_I_connected_24);
+%b(44,num_F_connected_24);
+%b(45,num_US_connected_24);
+%b(46,num_EGW_connected_24);
+%b(47,num_I_connected_36);
+%b(48,num_F_connected_36);
+%b(49,num_US_connected_36);
+%b(50,num_EGW_connected_36);
+%b(51,num_I_connected_48);
+%b(52,num_F_connected_48);
+%b(53,num_US_connected_48);
+%b(54,num_EGW_connected_48);
+
+%macro c(n,m);
+
+Data tito&n.1;
+set all_var31;
+if (0 <= &m <= 92);
+run;
+
+proc sort data=tito&n.1 out=tito&n.1(keep=cnxid &m);
+by cnxid &m;
+run;
+
+Data tito&n.2;
+set all_var31;
+if (&m > 92);
+run;
+
+proc sort data=tito&n.2 out=tito&n.2(keep=cnxid &m);
+by cnxid descending &m;
+run;
+
+Data tito&n;
+set tito&n.2 tito&n.1;
+run;
+
+proc sort data=tito&n out=tito&n;
+by cnxid;
+run;
+
+%mend;
+%c(55,num_accounts_inv_disconnected_3);
+%c(56,num_accounts_inv_disconnected_6);
+%c(57,num_accounts_inv_disconnected_12);
+%c(58,num_accounts_inv_disconnected_24);
+%c(59,num_accounts_inv_disconnected_36);
+%c(60,num_accounts_inv_disconnected_48);
+
+
+%macro co(n,m);
+
+Data tito&n.1;
+set all_var311;
+if (0 <= &m <= 92);
+run;
+
+proc sort data=tito&n.1 out=tito&n.1(keep=cnxid &m);
+by cnxid &m;
+run;
+
+Data tito&n.2;
+set all_var311;
+if (&m > 92);
+run;
+
+proc sort data=tito&n.2 out=tito&n.2(keep=cnxid &m);
+by cnxid descending &m;
+run;
+
+Data tito&n;
+set tito&n.2 tito&n.1;
+run;
+
+proc sort data=tito&n out=tito&n;
+by cnxid;
+run;
+
+%mend;
+%co(61,num_accounts_disconnected_3);
+
+%macro d(n,m);
+
+Data tito&n.1;
+set all_var3;
+if (0 <= &m <= 92);
+run;
+
+proc sort data=tito&n.1 out=tito&n.1(keep=cnxid &m);
+by cnxid &m;
+run;
+
+Data tito&n.2;
+set all_var3;
+if (&m > 92);
+run;
+
+proc sort data=tito&n.2 out=tito&n.2(keep=cnxid &m);
+by cnxid descending &m;
+run;
+
+Data tito&n;
+set tito&n.2 tito&n.1;
+run;
+
+proc sort data=tito&n out=tito&n;
+by cnxid;
+run;
+
+%mend;
+%d(62,num_I_inv_disconnected_6);
+%d(63,num_I_inv_disconnected_12);
+%d(64,num_I_inv_disconnected_24);
+%d(65,num_I_inv_disconnected_36);
+%d(66,num_I_inv_disconnected_48);
+%d(67,num_F_inv_disconnected_6);
+%d(68,num_F_inv_disconnected_12);
+%d(69,num_F_inv_disconnected_24);
+%d(70,num_F_inv_disconnected_36);
+%d(71,num_F_inv_disconnected_48);
+%d(72,num_US_inv_disconnected_6);
+%d(73,num_US_inv_disconnected_12);
+%d(74,num_US_inv_disconnected_24);
+%d(75,num_US_inv_disconnected_36);
+%d(76,num_US_inv_disconnected_48);
+%d(77,num_EGW_inv_disconnected_6);
+%d(78,num_EGW_inv_disconnected_12);
+%d(79,num_EGW_inv_disconnected_24);
+%d(80,num_EGW_inv_disconnected_36);
+%d(81,num_EGW_inv_disconnected_48);
+
+%macro e(n,m);
+
+Data tito&n.1;
+set all_var41;
+if (0 <= &m <= 92);
+run;
+
+proc sort data=tito&n.1 out=tito&n.1(keep=cnxid &m);
+by cnxid &m;
+run;
+
+Data tito&n.2;
+set all_var41;
+if (&m > 92);
+run;
+
+proc sort data=tito&n.2 out=tito&n.2(keep=cnxid &m);
+by cnxid descending &m;
+run;
+
+Data tito&n;
+set tito&n.2 tito&n.1;
+run;
+
+proc sort data=tito&n out=tito&n;
+by cnxid;
+run;
+
+%mend;
+%e(82,num_0_rep_6);
+%e(83,num_cls_paid_rep_6);
+%e(84,num_1_rep_6);
+%e(85,num_2p_unpaid_rep_6);
+%e(86,num_3p_unpaid_rep_6);
+%e(87,num_cls_unpaid_rep_6);
+
+%macro f(n,m);
+
+Data tito&n.1;
+set all_var4;
+if (0 <= &m <= 92);
+run;
+
+proc sort data=tito&n.1 out=tito&n.1(keep=cnxid &m);
+by cnxid &m;
+run;
+
+Data tito&n.2;
+set all_var4;
+if (&m > 92);
+run;
+
+proc sort data=tito&n.2 out=tito&n.2(keep=cnxid &m);
+by cnxid descending &m;
+run;
+
+Data tito&n;
+set tito&n.2 tito&n.1;
+run;
+
+proc sort data=tito&n out=tito&n;
+by cnxid;
+run;
+
+%mend;
+%f(88,num_I_0_rep_6);
+%f(89,num_F_0_rep_6);
+%f(90,num_US_0_rep_6);
+%f(91,num_EGW_0_rep_6);
+%f(92,num_I_cls_paid_rep_6);
+%f(93,num_F_cls_paid_rep_6);
+%f(94,num_US_cls_paid_rep_6);
+%f(95,num_EGW_cls_paid_rep_6);
+%f(96,num_I_1_rep_6);
+%f(97,num_F_1_rep_6);
+%f(98,num_US_1_rep_6);
+%f(99,num_EGW_1_rep_6);
+%f(100,num_I_2p_unpaid_rep_6);
+%f(101,num_F_2p_unpaid_rep_6);
+%f(102,num_US_2p_unpaid_rep_6);
+%f(103,num_EGW_2p_unpaid_rep_6);
+%f(104,num_I_3p_unpaid_rep_6);
+%f(105,num_F_3p_unpaid_rep_6);
+%f(106,num_US_3p_unpaid_rep_6);
+%f(107,num_EGW_3p_unpaid_rep_6);
+%f(108,num_I_cls_unpaid_rep_6);
+%f(109,num_F_cls_unpaid_rep_6);
+%f(110,num_US_cls_unpaid_rep_6);
+%f(111,num_EGW_cls_unpaid_rep_6);
+
+Data tito;
+merge 
+tito bkp
+tito1 tito2 tito3 tito4 tito5 tito6 tito7 tito8 tito9 tito10
+tito11 tito12 tito13 tito14 tito15 tito16 tito17 tito18 tito19 tito20
+tito21 tito22 tito23 tito24 tito25 tito26 tito27 tito28 tito29 tito30
+tito31 tito32 tito33 tito34 tito35 tito36 tito37 tito38 tito39 tito40
+tito41 tito42 tito43 tito44 tito45 tito46 tito47 tito48 tito49 tito50
+tito51 tito52 tito53 tito54 tito55 tito56 tito57 tito58 tito59 tito60
+tito61 tito62 tito63 tito64 tito65 tito66 tito67 tito68 tito69 tito70
+tito71 tito72 tito73 tito74 tito75 tito76 tito77 tito78 tito79 tito80
+tito81 tito82 tito83 tito84 tito85 tito86 tito87 tito88 tito89 tito90
+tito91 tito92 tito93 tito94 tito95 tito96 tito97 tito98 tito99 tito100
+tito101 tito102 tito103 tito104 tito105 tito106 tito107 tito108 tito109 tito110 tito111
+tito160 tito161 tito162
+;
+by cnxid;
+run;
+
+Data tito;
+set tito;
+
+   *** TOT1001 - Percent of Satisfactory Accounts to Total Accounts Reported in Last 6 Months ***;
+   /* if cnxid=' ' then perc_sat_rep_6=999;
+   else if cnxid ne ' ' and (num_0_wrst=97 or num_accounts_rep_6=97) then perc_sat_rep_6=997;
+   else if cnxid ne ' ' and (num_0_wrst=95 or num_accounts_rep_6=95) then perc_sat_rep_6=995;
+   else if cnxid ne ' ' and (num_accounts_rep_6 =0 or num_accounts_rep_6=.) then perc_sat_rep_6=994;
+   else if cnxid ne ' ' and (1 <= num_accounts_rep_6 <= 92) then do;
+      if perc_sat_rep_6 <= 992 then perc_sat_rep_6=round(((num_0_wrst/num_accounts_rep_6)*100),0.01);
+   end; */
+
+   *** WRL1001 - Percent of Satisfactory Wireless Accounts to Total Wireless Accounts Reported in Last 6 Months ***;
+   *** LND1001 - Percent of Satisfactory Landline Accounts to Total Landline Accounts Reported in Last 6 Months ***;
+   *** PTV1001 - Percent of Satisfactory Paid TV Accounts to Total Paid TV Accounts Reported in Last 6 Months ***;
+   *** UTL1001 - Percent of Satisfactory Utiltity Accounts to Total Utility Accounts Reported in Last 6 Months ***;
+   %macro sperc(servicetype);
+
+   if cnxid=' ' then perc_&servicetype._sat_rep_6=999;
+   else if cnxid ne ' ' and (num_&servicetype._0_rep_6=98 or num_&servicetype._rep_6=98) then perc_&servicetype._sat_rep_6=998;
+   else if cnxid ne ' ' and (num_&servicetype._0_rep_6=97 or num_&servicetype._rep_6=97) then perc_&servicetype._sat_rep_6=997;
+   else if cnxid ne ' ' and (num_&servicetype._0_rep_6=95 or num_&servicetype._rep_6=95) then perc_&servicetype._sat_rep_6=995;
+   else if cnxid ne ' ' and (num_&servicetype._0_rep_6=. or num_&servicetype._rep_6 =0 or num_&servicetype._rep_6=.) then perc_&servicetype._sat_rep_6=994;
+
+   else if cnxid ne ' ' and (1 <= num_&servicetype._rep_6 <= 92) then do;
+      if perc_&servicetype._sat_rep_6 <= 992 then perc_&servicetype._sat_rep_6=round(((num_&servicetype._0_rep_6/num_&servicetype._rep_6)*100),0.01);
+   end;
+
+   %mend;
+
+   %sperc(I);
+   %sperc(F);
+   %sperc(US);
+   %sperc(EGW);
+
+   *** TOT1002 - Percent of Paid Closed Accounts to Total Accounts Reported in Last 6 Months ***;
+   if cnxid=' ' then perc_cls_paid_rep_6=999;
+   else if cnxid ne ' ' and (num_cls_paid_rep_6=98 or num_accounts_rep_6=98) then perc_cls_paid_rep_6=998;
+   else if cnxid ne ' ' and (num_cls_paid_rep_6=97 or num_accounts_rep_6=97) then perc_cls_paid_rep_6=997;
+   else if cnxid ne ' ' and (num_cls_paid_rep_6=95 or num_accounts_rep_6=95) then perc_cls_paid_rep_6=995;
+   else if cnxid ne ' ' and (num_cls_paid_rep_6=. or num_accounts_rep_6=0 or num_accounts_rep_6=.) then perc_cls_paid_rep_6=994;
+   else if cnxid ne ' ' and (1 <= num_accounts_rep_6 <= 92) then do;
+      if perc_cls_paid_rep_6 <= 992 then perc_cls_paid_rep_6=round(((num_cls_paid_rep_6/num_accounts_rep_6)*100),0.01);
+   end;
+
+   *** WRL1002 - Percent of Paid Closed Wireless Accounts to Total Wireless Accounts Reported in Last 6 Months ***;
+   *** LND1002 - Percent of Paid Closed Landline Accounts to Total Landline Accounts Reported in Last 6 Months ***;
+   *** PTV1002 - Percent of Paid Closed Paid TV Accounts to Total Paid TV Accounts Reported in Last 6 Months ***;
+   *** UTL1002 - Percent of Paid Closed Utiltity Accounts to Total Utility Accounts Reported in Last 6 Months ***;
+   %macro sperc(servicetype);
+
+   if cnxid=' ' then perc_&servicetype._cls_paid_rep_6=999;
+   else if cnxid ne ' ' and (num_&servicetype._cls_paid_rep_6=98 or num_&servicetype._rep_6=98) then perc_&servicetype._cls_paid_rep_6=998;
+   else if cnxid ne ' ' and (num_&servicetype._cls_paid_rep_6=97 or num_&servicetype._rep_6=97) then perc_&servicetype._cls_paid_rep_6=997;
+   else if cnxid ne ' ' and (num_&servicetype._cls_paid_rep_6=95 or num_&servicetype._rep_6=95) then perc_&servicetype._cls_paid_rep_6=995;
+   else if cnxid ne ' ' and (num_&servicetype._cls_paid_rep_6=. or num_&servicetype._rep_6=0 or num_&servicetype._rep_6=.) then perc_&servicetype._cls_paid_rep_6=994;
+   else if cnxid ne ' ' and (1 <= num_&servicetype._rep_6 <= 92) then do;
+      if perc_&servicetype._cls_paid_rep_6 <= 992 then perc_&servicetype._cls_paid_rep_6=round(((num_&servicetype._cls_paid_rep_6/num_&servicetype._rep_6)*100),0.01);
+   end;
+
+   %mend;
+
+   %sperc(I);
+   %sperc(F);
+   %sperc(US);
+   %sperc(EGW);
+
+   *** TOT1003 - Percent of 30 dpd Accounts to Total Accounts Reported in Last 6 Months ***;
+   if cnxid=' ' then perc_1_rep_6=999;
+   else if cnxid ne ' ' and (num_1_rep_6=98 or num_accounts_rep_6=98) then perc_1_rep_6=998;
+   else if cnxid ne ' ' and (num_1_rep_6=97 or num_accounts_rep_6=97) then perc_1_rep_6=997;
+   else if cnxid ne ' ' and (num_1_rep_6=95 or num_accounts_rep_6=95) then perc_1_rep_6=995;
+   else if cnxid ne ' ' and (num_1_rep_6=. or num_accounts_rep_6=0 or num_accounts_rep_6=.) then perc_1_rep_6=994;
+   else if cnxid ne ' ' and (1 <= num_accounts_rep_6 <= 92) then do;
+      if perc_1_rep_6 <= 992 then perc_1_rep_6=round(((num_1_rep_6/num_accounts_rep_6)*100),0.01);
+   end;
+
+   *** WRL1003 - Percent of 30 dpd Wireless Accounts to Total Wireless Accounts Reported in Last 6 Months ***;
+   *** LND1003 - Percent of 30 dpd Landline Accounts to Total Landline Accounts Reported in Last 6 Months ***;
+   *** PTV1003 - Percent of 30 dpd Paid TV Accounts to Total Paid TV Accounts Reported in Last 6 Months ***;
+   *** UTL1003 - Percent of 30 dpd Utiltity Accounts to Total Utility Accounts Reported in Last 6 Months ***;
+   %macro sperc(servicetype);
+
+   if cnxid=' ' then perc_&servicetype._1_rep_6=999;
+   else if cnxid ne ' ' and (num_&servicetype._1_rep_6=98 or num_&servicetype._rep_6=98) then perc_&servicetype._1_rep_6=998;
+   else if cnxid ne ' ' and (num_&servicetype._1_rep_6=97 or num_&servicetype._rep_6=97) then perc_&servicetype._1_rep_6=997;
+   else if cnxid ne ' ' and (num_&servicetype._1_rep_6=95 or num_&servicetype._rep_6=95) then perc_&servicetype._1_rep_6=995;
+   else if cnxid ne ' ' and (num_&servicetype._1_rep_6=. or num_&servicetype._rep_6=0 or num_&servicetype._rep_6=.) then perc_&servicetype._1_rep_6=994;
+   else if cnxid ne ' ' and (1 <= num_&servicetype._rep_6 <= 92) then do;
+      if perc_&servicetype._1_rep_6 <=992 then perc_&servicetype._1_rep_6=round(((num_&servicetype._1_rep_6/num_&servicetype._rep_6)*100),0.01);
+   end;
+
+   %mend;
+
+   %sperc(I);
+   %sperc(F);
+   %sperc(US);
+   %sperc(EGW);
+
+   ***  TOT1004 - Percent of 60+ or Unpaid Closed Accounts to Total Accounts Reported in Last 6 Months ***;
+   if cnxid=' ' then perc_2p_unpaid_rep_6=999;
+   else if cnxid ne ' ' and (num_2p_unpaid_rep_6=98 or num_accounts_rep_6=98) then perc_2p_unpaid_rep_6=998;
+   else if cnxid ne ' ' and (num_2p_unpaid_rep_6=97 or num_accounts_rep_6=97) then perc_2p_unpaid_rep_6=997;
+   else if cnxid ne ' ' and (num_2p_unpaid_rep_6=95 or num_accounts_rep_6=95) then perc_2p_unpaid_rep_6=995;
+   else if cnxid ne ' ' and (num_2p_unpaid_rep_6=. or num_accounts_rep_6=0 or num_accounts_rep_6=.) then perc_2p_unpaid_rep_6=994;
+   else if cnxid ne ' ' and (1 <= num_accounts_rep_6 <= 92) then do;
+      if perc_2p_unpaid_rep_6 <= 992 then perc_2p_unpaid_rep_6=round(((num_2p_unpaid_rep_6/num_accounts_rep_6)*100),0.01);
+   end;
+
+   *** WRL1004 - Percent of 60+ or Unpaid Closed Wireless Accounts to Total Wireless Accounts Reported in Last 6 Months ***;
+   *** LND1004 - Percent of 60+ or Unpaid Closed Landline Accounts to Total Landline Accounts Reported in Last 6 Months ***;
+   *** PTV1004 - Percent of 60+ or Unpaid Closed Paid TV Accounts to Total Paid TV Accounts Reported in Last 6 Months ***;
+   *** UTL1004 - Percent of 60+ or Unpaid Closed Utiltity Accounts to Total Utility Accounts Reported in Last 6 Months ***;
+   %macro sperc(servicetype);
+
+   if cnxid=' ' then perc_&servicetype._2p_unpaid_rep_6=999;
+   else if cnxid ne ' ' and (num_&servicetype._2p_unpaid_rep_6=98 or num_&servicetype._rep_6=98) then perc_&servicetype._2p_unpaid_rep_6=998;
+   else if cnxid ne ' ' and (num_&servicetype._2p_unpaid_rep_6=97 or num_&servicetype._rep_6=97) then perc_&servicetype._2p_unpaid_rep_6=997;
+   else if cnxid ne ' ' and (num_&servicetype._2p_unpaid_rep_6=95 or num_&servicetype._rep_6=95) then perc_&servicetype._2p_unpaid_rep_6=995;
+   else if cnxid ne ' ' and (num_&servicetype._2p_unpaid_rep_6=. or num_&servicetype._rep_6=0 or num_&servicetype._rep_6=.) then perc_&servicetype._2p_unpaid_rep_6=994;
+   else if cnxid ne ' ' and (1 <= num_&servicetype._rep_6 <=92) then do;
+      if perc_&servicetype._2p_unpaid_rep_6 <= 992 then 
+         perc_&servicetype._2p_unpaid_rep_6=round(((num_&servicetype._2p_unpaid_rep_6/num_&servicetype._rep_6)*100),0.01);
+   end;
+
+   %mend;
+
+   %sperc(I);
+   %sperc(F);
+   %sperc(US);
+   %sperc(EGW);
+
+   *** TOT1005 - Percent of 90+ or Unpaid Closed Accounts to Total Accounts Reported in Last 6 Months ***;
+   if cnxid=' ' then perc_3p_unpaid_rep_6=999;
+   else if cnxid ne ' ' and (num_3p_unpaid_rep_6=98 or num_accounts_rep_6=98) then perc_3p_unpaid_rep_6=998;
+   else if cnxid ne ' ' and (num_3p_unpaid_rep_6=97 or num_accounts_rep_6=97) then perc_3p_unpaid_rep_6=997;
+   else if cnxid ne ' ' and (num_3p_unpaid_rep_6=95 or num_accounts_rep_6=95) then perc_3p_unpaid_rep_6=995;
+   else if cnxid ne ' ' and (num_3p_unpaid_rep_6=. or num_accounts_rep_6=0 or num_accounts_rep_6=.) then perc_3p_unpaid_rep_6=994;
+   else if cnxid ne ' ' and (1 <= num_accounts_rep_6 <= 92) then do;
+      if perc_3p_unpaid_rep_6 <= 992 then perc_3p_unpaid_rep_6=round(((num_3p_unpaid_rep_6/num_accounts_rep_6)*100),0.01);
+   end;
+
+   *** WRL1005 - Percent of 90+ or Unpaid Closed Wireless Accounts to Total Wireless Accounts Reported in Last 6 Months ***;
+   *** LND1005 - Percent of 90+ or Unpaid Closed Landline Accounts to Total Landline Accounts Reported in Last 6 Months ***;
+   *** PTV1005 - Percent of 90+ or Unpaid Closed Paid TV Accounts to Total Paid TV Accounts Reported in Last 6 Months ***;
+   *** UTL1005 - Percent of 90+ or Unpaid Closed Utiltity Accounts to Total Utility Accounts Reported in Last 6 Months ***;
+   %macro sperc(servicetype);
+
+   if cnxid=' ' then perc_&servicetype._3p_unpaid_rep_6=999;
+   else if cnxid ne ' ' and (num_&servicetype._3p_unpaid_rep_6=98 or num_&servicetype._rep_6=98) then perc_&servicetype._3p_unpaid_rep_6=998;
+   else if cnxid ne ' ' and (num_&servicetype._3p_unpaid_rep_6=97 or num_&servicetype._rep_6=97) then perc_&servicetype._3p_unpaid_rep_6=997;
+   else if cnxid ne ' ' and (num_&servicetype._3p_unpaid_rep_6=95 or num_&servicetype._rep_6=95) then perc_&servicetype._3p_unpaid_rep_6=995;
+   else if cnxid ne ' ' and (num_&servicetype._3p_unpaid_rep_6=. or num_&servicetype._rep_6=0 or num_&servicetype._rep_6=.) then perc_&servicetype._3p_unpaid_rep_6=994;
+   else if cnxid ne ' ' and (1 <= num_&servicetype._rep_6 <= 92) then do;
+      if perc_&servicetype._3p_unpaid_rep_6 <= 992 then perc_&servicetype._3p_unpaid_rep_6=round(((num_&servicetype._3p_unpaid_rep_6/num_&servicetype._rep_6)*100),0.01);
+   end;
+
+   %mend;
+
+   %sperc(I);
+   %sperc(F);
+   %sperc(US);
+   %sperc(EGW);
+
+   *** TOT1006 - Percent of Unpaid Closed Accounts to Total Accounts Reported in Last 6 Months ***;
+   if cnxid=' ' then perc_cls_unpaid_rep_6=999;
+   else if cnxid ne ' ' and (num_cls_unpaid_rep_6=98 or num_accounts_rep_6=98) then perc_cls_unpaid_rep_6=998;
+   else if cnxid ne ' ' and (num_cls_unpaid_rep_6=97 or num_accounts_rep_6=97) then perc_cls_unpaid_rep_6=997;
+   else if cnxid ne ' ' and (num_cls_unpaid_rep_6=95 or num_accounts_rep_6=95) then perc_cls_unpaid_rep_6=995;
+   else if cnxid ne ' ' and (num_cls_unpaid_rep_6=. or num_accounts_rep_6=0 or num_accounts_rep_6=.) then perc_cls_unpaid_rep_6=994;
+   else if cnxid ne ' ' and (1 <= num_accounts_rep_6 <= 92) then do;
+      if perc_cls_unpaid_rep_6 <= 992 then perc_cls_unpaid_rep_6=round(((num_cls_unpaid_rep_6/num_accounts_rep_6)*100),0.01);
+   end;
+
+   *** WRL1006 - Percent of Unpaid Closed Wireless Accounts to Total Wireless Accounts Reported in Last 6 Months ***;
+   *** LND1006 - Percent of Unpaid Closed Landline Accounts to Total Landline Accounts Reported in Last 6 Months ***;
+   *** PTV1006 - Percent of Unpaid Closed Paid TV Accounts to Total Paid TV Accounts Reported in Last 6 Months ***;
+   *** UTL1006 - Percent of Unpaid Closed Utiltity Accounts to Total Utility Accounts Reported in Last 6 Months ***;
+   %macro sperc(servicetype);
+
+   if cnxid=' ' then perc_&servicetype._cls_unpaid_rep_6=999;
+   else if cnxid ne ' ' and (num_&servicetype._cls_unpaid_rep_6=98 or num_&servicetype._rep_6=98) then perc_&servicetype._cls_unpaid_rep_6=998;
+   else if cnxid ne ' ' and (num_&servicetype._cls_unpaid_rep_6=97 or num_&servicetype._rep_6=97) then perc_&servicetype._cls_unpaid_rep_6=997;
+   else if cnxid ne ' ' and (num_&servicetype._cls_unpaid_rep_6=95 or num_&servicetype._rep_6=95) then perc_&servicetype._cls_unpaid_rep_6=995;
+   else if cnxid ne ' ' and (num_&servicetype._cls_unpaid_rep_6=. or num_&servicetype._rep_6=0 or num_&servicetype._rep_6=.) then perc_&servicetype._cls_unpaid_rep_6=994;
+   else if cnxid ne ' ' and (1 <= num_&servicetype._rep_6 <= 92) then do;
+      if perc_&servicetype._cls_unpaid_rep_6 <= 992 then perc_&servicetype._cls_unpaid_rep_6=round(((num_&servicetype._cls_unpaid_rep_6/num_&servicetype._rep_6)*100),0.01);
+   end;
+
+   %mend;
+
+   %sperc(I);
+   %sperc(F);
+   %sperc(US);
+   %sperc(EGW);
+
+   *** TOT1007 - Percent of Open Accounts to Total Accounts ***;
+   if cnxid=' ' then perc_open2=999;
+   else if cnxid ne ' ' and (num_accounts_open2=97 or num_accounts=97) then perc_open2=997;
+   else if cnxid ne ' ' and (num_accounts_open2=96 or num_accounts=96) then perc_open2=996;
+   else if cnxid ne ' ' and (num_accounts_open2=95 or num_accounts=95) then perc_open2=995;
+   else if cnxid ne ' ' and (num_accounts_open2=. or num_accounts=0 or num_accounts=.) then perc_open2=994;
+   else if cnxid ne ' ' and (1 <= num_accounts <= 92) then do;
+      if perc_open2 <= 992 then perc_open2=round(((num_accounts_open2/num_accounts)*100),0.01);
+   end;
+
+ run;
+
+ proc sort data=tito out=tito;
+ by cnxid;
+ run;
+
+ Data ncvar1_def_inv
+;
+ set tito;
+ by cnxid;
+ if (last.cnxid) then output ncvar1_def_inv;
+ run;
+
+ Data ncvar1_def_tr;
+ set tito;
+ run;
+
+
+proc freq; table num_bkp;run;
+
+%macro keeplist;
+
+TOT0101
+TOT0102
+TOT0103
+TOT0104
+TOT0105
+TOT0106
+TOT0107
+TOT0108
+TOT0109
+TOT0110
+TOT0111
+TOT0112
+TOT0113
+TOT0114
+TOT0115
+TOT0141
+TOT0145
+TOT0146
+TOT0147
+TOT0148
+TOT1002
+TOT1006
+TOT1007
+
+%mend;
+
+ ** List of Vars in Keeplist are a subset of the entire Keystone Attribute List due to the obs point of the analysis 11/09 NC+ extract **;
+ ** Utility data and length of history in the DB for aggregation are the limitations **;
+ Data ncvar1_def(keep=cnxid %keeplist);
+ set ncvar1_def_inv;
+
+ ****** Drop the Bankrupt Population if bankruptcy suppression necessary - individual level ******;
+
+ **** Attribute Capping ****;
+ /* if num_accounts > 92 then num_accounts = 92;
+ if num_I > 92 then num_I = 92;
+ if num_F > 92 then num_F = 92;
+ if num_US > 92 then num_US = 92;
+ if num_EGW > 92 then num_EGW = 92;
+ if num_N > 92 then num_N = 92;
+ if num_DF > 92 then num_DF = 92;
+ if num_FN > 92 then num_FN = 92;
+ if num_accounts_open2 > 92 then num_accounts_open2 = 92;
+ if num_I_open2 > 92 then num_I_open2 = 92;
+ if num_F_open2 > 92 then num_F_open2 = 92;
+ if num_US_open2 > 92 then num_US_open2 = 92;
+ if num_EGW_open2 > 92 then num_EGW_open2 = 92;
+ if num_N_open2 > 92 then num_N_open2 = 92;
+ if num_DF_open2 > 92 then num_DF_open2 = 92;
+ if num_FN_open2 > 92 then num_FN_open2 = 92;
+ if num_accounts_rep_3 > 92 then num_accounts_rep_3 = 92;
+ if num_I_rep_3 > 92 then num_I_rep_3 = 92;
+ if num_F_rep_3 > 92 then num_F_rep_3 = 92;
+ if num_US_rep_3 > 92 then num_US_rep_3 = 92;
+ if num_EGW_rep_3 > 92 then num_EGW_rep_3 = 92;
+ if num_accounts_rep_6 > 92 then num_accounts_rep_6 = 92;
+ if num_I_rep_6 > 92 then num_I_rep_6 = 92;
+ if num_F_rep_6 > 92 then num_F_rep_6 = 92;
+ if num_US_rep_6 > 92 then num_US_rep_6 = 92;
+ if num_EGW_rep_6 > 92 then num_EGW_rep_6 = 92;
+ if num_accounts_rep_12 > 92 then num_accounts_rep_12 = 92;
+ if num_I_rep_12 > 92 then num_I_rep_12 = 92;
+ if num_F_rep_12 > 92 then num_F_rep_12 = 92;
+ if num_US_rep_12 > 92 then num_US_rep_12 = 92;
+ if num_EGW_rep_12 > 92 then num_EGW_rep_12 = 92;
+ if num_accounts_connected_3 > 92 then num_accounts_connected_3 = 92;
+ if num_accounts_connected_6 > 92 then num_accounts_connected_6 = 92;
+ if num_I_connected_6 > 92 then num_I_connected_6 = 92;
+ if num_F_connected_6 > 92 then num_F_connected_6 = 92;
+ if num_US_connected_6 > 92 then num_US_connected_6 = 92;
+ if num_EGW_connected_6 > 92 then num_EGW_connected_6 = 92;
+ if num_accounts_connected_12 > 92 then num_accounts_connected_12 = 92;
+ if num_I_connected_12 > 92 then num_I_connected_12 = 92;
+ if num_F_connected_12 > 92 then num_F_connected_12 = 92;
+ if num_US_connected_12 > 92 then num_US_connected_12 = 92;
+ if num_EGW_connected_12 > 92 then num_EGW_connected_12 = 92;
+ if num_accounts_connected_24 > 92 then num_accounts_connected_24 = 92;
+ if num_I_connected_24 > 92 then num_I_connected_24 = 92;
+ if num_F_connected_24 > 92 then num_F_connected_24 = 92;
+ if num_US_connected_24 > 92 then num_US_connected_24 = 92;
+ if num_EGW_connected_24 > 92 then num_EGW_connected_24 = 92;
+ if num_accounts_connected_36 > 92 then num_accounts_connected_36 = 92;
+ if num_I_connected_36 > 92 then num_I_connected_36 = 92;
+ if num_F_connected_36 > 92 then num_F_connected_36 = 92;
+ if num_US_connected_36 > 92 then num_US_connected_36 = 92;
+ if num_EGW_connected_36 > 92 then num_EGW_connected_36 = 92;
+ if num_accounts_connected_48 > 92 then num_accounts_connected_48 = 92;
+ if num_I_connected_48 > 92 then num_I_connected_48 = 92;
+ if num_F_connected_48 > 92 then num_F_connected_48 = 92;
+ if num_US_connected_48 > 92 then num_US_connected_48 = 92;
+ if num_EGW_connected_48 > 92 then num_EGW_connected_48 = 92;
+ if num_accounts_disconnected_3 > 92 then num_accounts_disconnected_3 = 92;
+ if num_accounts_inv_disconnected_3 > 92 then num_accounts_inv_disconnected_3 = 92;
+ if num_accounts_inv_disconnected_6 > 92 then num_accounts_inv_disconnected_6 = 92;
+ if num_I_inv_disconnected_6 > 92 then num_I_inv_disconnected_6 = 92;
+ if num_F_inv_disconnected_6 > 92 then num_F_inv_disconnected_6 = 92;
+ if num_US_inv_disconnected_6 > 92 then num_US_inv_disconnected_6 = 92;
+ if num_EGW_inv_disconnected_6 > 92 then num_EGW_inv_disconnected_6 = 92;
+ if num_accounts_inv_disconnected_12 > 92 then num_accounts_inv_disconnected_12 = 92;
+ if num_I_inv_disconnected_12 > 92 then num_I_inv_disconnected_12 = 92;
+ if num_F_inv_disconnected_12 > 92 then num_F_inv_disconnected_12 = 92;
+ if num_US_inv_disconnected_12 > 92 then num_US_inv_disconnected_12 = 92;
+ if num_EGW_inv_disconnected_12 > 92 then num_EGW_inv_disconnected_12 = 92;
+ if num_accounts_inv_disconnected_24 > 92 then num_accounts_inv_disconnected_24 = 92;
+ if num_I_inv_disconnected_24 > 92 then num_I_inv_disconnected_24 = 92;
+ if num_F_inv_disconnected_24 > 92 then num_F_inv_disconnected_24 = 92;
+ if num_US_inv_disconnected_24 > 92 then num_US_inv_disconnected_24 = 92;
+ if num_EGW_inv_disconnected_24 > 92 then num_EGW_inv_disconnected_24 = 92;
+ if num_accounts_inv_disconnected_36 > 92 then num_accounts_inv_disconnected_36 = 92;
+ if num_I_inv_disconnected_36 > 92 then num_I_inv_disconnected_36 = 92;
+ if num_F_inv_disconnected_36 > 92 then num_F_inv_disconnected_36 = 92;
+ if num_US_inv_disconnected_36 > 92 then num_US_inv_disconnected_36 = 92;
+ if num_EGW_inv_disconnected_36 > 92 then num_EGW_inv_disconnected_36 = 92;
+ if num_accounts_inv_disconnected_48 > 92 then num_accounts_inv_disconnected_48 = 92;
+ if num_I_inv_disconnected_48 > 92 then num_I_inv_disconnected_48 = 92;
+ if num_F_inv_disconnected_48 > 92 then num_F_inv_disconnected_48 = 92;
+ if num_US_inv_disconnected_48 > 92 then num_US_inv_disconnected_48 = 92;
+ if num_EGW_inv_disconnected_48 > 92 then num_EGW_inv_disconnected_48 = 92;
+ if num_0_rep_6 > 92 then num_0_rep_6 = 92;
+ if num_I_0_rep_6 > 92 then num_I_0_rep_6 = 92;
+ if num_F_0_rep_6 > 92 then num_F_0_rep_6 = 92;
+ if num_US_0_rep_6 > 92 then num_US_0_rep_6 = 92;
+ if num_EGW_0_rep_6 > 92 then num_EGW_0_rep_6 = 92;
+ if num_cls_paid_rep_6 > 92 then num_cls_paid_rep_6 = 92;
+ if num_I_cls_paid_rep_6 > 92 then num_I_cls_paid_rep_6 = 92;
+ if num_F_cls_paid_rep_6 > 92 then num_F_cls_paid_rep_6 = 92;
+ if num_US_cls_paid_rep_6 > 92 then num_US_cls_paid_rep_6 = 92;
+ if num_EGW_cls_paid_rep_6 > 92 then num_EGW_cls_paid_rep_6 = 92;
+ if num_1_rep_6 > 92 then num_1_rep_6 = 92;
+ if num_I_1_rep_6 > 92 then num_I_1_rep_6 = 92;
+ if num_F_1_rep_6 > 92 then num_F_1_rep_6 = 92;
+ if num_US_1_rep_6 > 92 then num_US_1_rep_6 = 92;
+ if num_EGW_1_rep_6 > 92 then num_EGW_1_rep_6 = 92;
+ if num_2p_unpaid_rep_6 > 92 then num_2p_unpaid_rep_6 = 92;
+ if num_I_2p_unpaid_rep_6 > 92 then num_I_2p_unpaid_rep_6 = 92;
+ if num_F_2p_unpaid_rep_6 > 92 then num_F_2p_unpaid_rep_6 = 92;
+ if num_US_2p_unpaid_rep_6 > 92 then num_US_2p_unpaid_rep_6 = 92;
+ if num_EGW_2p_unpaid_rep_6 > 92 then num_EGW_2p_unpaid_rep_6 = 92;
+ if num_3p_unpaid_rep_6 > 92 then num_3p_unpaid_rep_6 = 92;
+ if num_I_3p_unpaid_rep_6 > 92 then num_I_3p_unpaid_rep_6 = 92;
+ if num_F_3p_unpaid_rep_6 > 92 then num_F_3p_unpaid_rep_6 = 92;
+ if num_US_3p_unpaid_rep_6 > 92 then num_US_3p_unpaid_rep_6 = 92;
+ if num_EGW_3p_unpaid_rep_6 > 92 then num_EGW_3p_unpaid_rep_6 = 92;
+ if num_cls_unpaid_rep_6 > 92 then num_cls_unpaid_rep_6 = 92;
+ if num_I_cls_unpaid_rep_6 > 92 then num_I_cls_unpaid_rep_6 = 92;
+ if num_F_cls_unpaid_rep_6 > 92 then num_F_cls_unpaid_rep_6 = 92;
+ if num_US_cls_unpaid_rep_6 > 92 then num_US_cls_unpaid_rep_6 = 92;
+ if num_EGW_cls_unpaid_rep_6 > 92 then num_EGW_cls_unpaid_rep_6 = 92;
+ if perc_sat_rep_6 > 992 then perc_sat_rep_6 = 992;
+ if perc_I_sat_rep_6 > 992 then perc_I_sat_rep_6 = 992;
+ if perc_F_sat_rep_6 > 992 then perc_F_sat_rep_6 = 992;
+ if perc_US_sat_rep_6 > 992 then perc_US_sat_rep_6 = 992;
+ if perc_EGW_sat_rep_6 > 992 then perc_EGW_sat_rep_6 = 992;
+ if perc_cls_paid_rep_6 > 992 then perc_cls_paid_rep_6 = 992;
+ if perc_I_cls_paid_rep_6 > 992 then perc_I_cls_paid_rep_6 = 992;
+ if perc_F_cls_paid_rep_6 > 992 then perc_F_cls_paid_rep_6 = 992;
+ if perc_US_cls_paid_rep_6 > 992 then perc_US_cls_paid_rep_6 = 992;
+ if perc_EGW_cls_paid_rep_6 > 992 then perc_EGW_cls_paid_rep_6 = 992;
+ if perc_1_rep_6 > 992 then perc_1_rep_6 = 992;
+ if perc_I_1_rep_6 > 992 then perc_I_1_rep_6 = 992;
+ if perc_F_1_rep_6 > 992 then perc_F_1_rep_6 = 992;
+ if perc_US_1_rep_6 > 992 then perc_US_1_rep_6 = 992;
+ if perc_EGW_1_rep_6 > 992 then perc_EGW_1_rep_6 = 992;
+ if perc_2p_unpaid_rep_6 > 992 then perc_2p_unpaid_rep_6 = 992;
+ if perc_I_2p_unpaid_rep_6 > 992 then perc_I_2p_unpaid_rep_6 = 992;
+ if perc_F_2p_unpaid_rep_6 > 992 then perc_F_2p_unpaid_rep_6 = 992;
+ if perc_US_2p_unpaid_rep_6 > 992 then perc_US_2p_unpaid_rep_6 = 992;
+ if perc_EGW_2p_unpaid_rep_6 > 992 then perc_EGW_2p_unpaid_rep_6 = 992;
+ if perc_3p_unpaid_rep_6 > 992 then perc_3p_unpaid_rep_6 = 992;
+ if perc_I_3p_unpaid_rep_6 > 992 then perc_I_3p_unpaid_rep_6 = 992;
+ if perc_F_3p_unpaid_rep_6 > 992 then perc_F_3p_unpaid_rep_6 = 992;
+ if perc_US_3p_unpaid_rep_6 > 992 then perc_US_3p_unpaid_rep_6 = 992;
+ if perc_EGW_3p_unpaid_rep_6 > 992 then perc_EGW_3p_unpaid_rep_6 = 992;
+ if perc_cls_unpaid_rep_6 > 992 then perc_cls_unpaid_rep_6 = 992;
+ if perc_I_cls_unpaid_rep_6 > 992 then perc_I_cls_unpaid_rep_6 = 992;
+ if perc_F_cls_unpaid_rep_6 > 992 then perc_F_cls_unpaid_rep_6 = 992;
+ if perc_US_cls_unpaid_rep_6 > 992 then perc_US_cls_unpaid_rep_6 = 992;
+ if perc_EGW_cls_unpaid_rep_6 > 992 then perc_EGW_cls_unpaid_rep_6 = 992;
+ if perc_open2 > 992 then perc_open2 = 992; */
+
+ *** RENAME AND LABEL - KEYSTONE ATTRIBUTES ***;
+%inc "&path./ncvar1_name_labels_keystone.sas";
+
+ run;
+
+proc contents data=ncvar1_def ;run;
+
+ proc means data=ncvar1_def;
+ var %keeplist;
+ run;
+
+data ncvar1_final(rename=(
+TOT0101	=	XMA1006
+TOT0102	=	XMA1011
+TOT0103	=	XMA1096
+TOT0104	=	XMA1101
+TOT0105	=	XMA1106
+TOT0106	=	XMA1111
+TOT0107	=	XMA1116
+TOT0108	=	XMA1121
+TOT0109	=	XMA1388
+TOT0110	=	XMA1126
+TOT0111	=	XMA1131
+TOT0112	=	XMA1136
+TOT0113	=	XMA1141
+TOT0114	=	XMA1389
+TOT0115	=	XMA1146
+TOT0141	=	XMA1286
+TOT0145	=	XMA1306
+TOT0146	=	XMA1390
+TOT0147	=	XMA1391
+TOT0148	=	XMA1392
+TOT1002	=	XMA1316
+TOT1006	=	XMA1336
+TOT1007	=	XMA1393
+));
+set ncvar1_def;
+
+label	TOT0101	=	'Number of Trades';
+label	TOT0102	=	'Number of Open Trades';
+label	TOT0103	=	'Number of Trades Reported in Last 3 Months';
+label	TOT0104	=	'Number of Trades Reported in Last 6 Months';
+label	TOT0105	=	'Number of Trades Reported in Last 12 Months';
+label	TOT0106	=	'Number of Connection in Last 6 Months';
+label	TOT0107	=	'Number of Connection in Last 12 Months';
+label	TOT0108	=	'Number of Connection in Last 24 Months';
+label	TOT0109	=	'Number of Connection in Last 36 Months';
+label	TOT0110	=	'Number of Connection in Last 48 Months';
+label	TOT0111	=	'Number of Involuntary Disconnection in Last 6 Months';
+label	TOT0112	=	'Number of Involuntary Disconnection in Last 12 Months';
+label	TOT0113	=	'Number of Involuntary Disconnection in Last 24 Months';
+label	TOT0114	=	'Number of Involuntary Disconnection in Last 36 Months';
+label	TOT0115	=	'Number of Involuntary Disconnection in Last 48 Months';
+label	TOT0141	=	'Number of Paid';
+label	TOT0145	=	'Number of Derogatory Trades Reported In Last 6 Months';
+label	TOT0146	=	'Number of Connection in Last 3 Months';
+label	TOT0147	=	'Number of Disconnection in Last 3 Months';
+label	TOT0148	=	'Number of Involuntary Disconnection in Last 3 Months';
+label	TOT1002	=	'Percent of Paid';
+label	TOT1006	=	'Percent of DerogatoryTrades to Total Trades Reported in Last 6 Months';
+label	TOT1007	=	'Percent Open Trades to Total Trades';
+run;
+
+proc contents data=ncvar1_final ;run;
+proc means data=ncvar1_final n nmiss min p1 p5 p10 p25 p50 p75 p90 p95 p99 max mean;
+ var _numeric_;
+run;
+
+
